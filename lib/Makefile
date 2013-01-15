@@ -42,6 +42,7 @@ obj-$(CONFIG_TPM) += tpm.o
 obj-$(CONFIG_RBTREE)	+= rbtree.o
 obj-$(CONFIG_BITREVERSE) += bitrev.o
 obj-y += list_sort.o
+obj-$(CONFIG_BLOWFISH) += blowfish.o
 endif
 
 ifdef CONFIG_SPL_BUILD
