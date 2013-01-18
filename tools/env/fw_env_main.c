@@ -72,19 +72,27 @@ void usage(void)
 	);
 }
 
+#include <errno.h>
+
 int main(int argc, char *argv[])
 {
 	char *p;
 	char *cmdname = *argv;
 	char *script_file = NULL;
+	int print_default_env = 0;
 	int c;
 	const char *lockname = "/var/lock/" CMD_PRINTENV ".lock";
 	int lockfd = -1;
 	int retval = EXIT_SUCCESS;
+	struct flock lock;
 
-	lockfd = open(lockname, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+	lock.l_type = F_RDLCK;
+	lock.l_len = 0;
+	lock.l_start = 0;
+	lock.l_whence = SEEK_SET;
+	lockfd = open(lockname, O_WRONLY | O_CREAT | O_TRUNC, &lock);
 	if (-1 == lockfd) {
-		fprintf(stderr, "Error opening lock file %s\n", lockname);
+		fprintf(stderr, "Error opening lock file '%s': %s\n", lockname, strerror(errno));
 		return EXIT_FAILURE;
 	}
 
@@ -143,5 +151,6 @@ int main(int argc, char *argv[])
 exit:
 	flock(lockfd, LOCK_UN);
 	close(lockfd);
+	remove(lockname);
 	return retval;
 }
