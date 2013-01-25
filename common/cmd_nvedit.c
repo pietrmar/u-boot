@@ -577,6 +577,19 @@ int do_env_flags(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 }
 #endif
 
+
+#ifndef CONFIG_SPL_BUILD
+extern void env_relocate_spec(void);
+static int do_env_reload (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	if (gd->env_valid == 0) {
+		return 1;
+	}
+	env_relocate_spec();
+	return 0;
+}
+#endif /* CONFIG_SPL_BUILD */
+
 /*
  * Interactively edit an environment variable
  */
@@ -1141,6 +1154,7 @@ static cmd_tbl_t cmd_env_sub[] = {
 #if defined(CONFIG_CMD_ENV_EXISTS)
 	U_BOOT_CMD_MKENT(exists, 2, 0, do_env_exists, "", ""),
 #endif
+	U_BOOT_CMD_MKENT(reload, 1, 0, do_env_reload, "", ""),
 };
 
 #if defined(CONFIG_NEEDS_MANUAL_RELOC)
@@ -1209,8 +1223,9 @@ static char env_help_text[] =
 #if defined(CONFIG_CMD_SAVEENV) && !defined(CONFIG_ENV_IS_NOWHERE)
 	"env save - save environment\n"
 #endif
-	"env set [-f] name [arg ...]\n";
+	"env set [-f] name [arg ...]\n"
 #endif
+	"env reload - reload environment from flash\n";
 
 U_BOOT_CMD(
 	env, CONFIG_SYS_MAXARGS, 1, do_env,
