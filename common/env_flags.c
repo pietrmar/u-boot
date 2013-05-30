@@ -5,9 +5,6 @@
  * SPDX-License-Identifier:	GPL-2.0+
  */
 
-#include <linux/string.h>
-#include <linux/ctype.h>
-
 #ifdef USE_HOSTCC /* Eliminate "ANSI does not permit..." warnings */
 #include <stdint.h>
 #include <stdio.h>
@@ -20,11 +17,16 @@
 #include <environment.h>
 #endif
 
+#include <linux/string.h>
+#include <linux/ctype.h>
+
 #ifdef CONFIG_CMD_NET
 #define ENV_FLAGS_NET_VARTYPE_REPS "im"
 #else
 #define ENV_FLAGS_NET_VARTYPE_REPS ""
 #endif
+
+#define ARRAY_SIZE(x)          (sizeof(x) / sizeof((x)[0]))
 
 static const char env_flags_vartype_rep[] = "sdxb" ENV_FLAGS_NET_VARTYPE_REPS;
 static const char env_flags_varaccess_rep[] = "aroc";
