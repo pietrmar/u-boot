@@ -42,6 +42,7 @@
 #define CMD_SETCONST	"fw_setconst"
 
 extern char * config_file;
+extern int use_constants_instead_of_env;
 
 static struct option long_options[] = {
 	{"script", required_argument, NULL, 's'},
@@ -90,6 +91,7 @@ int main(int argc, char *argv[])
 	int lockfd = -1;
 	int retval = EXIT_SUCCESS;
 	struct flock lock;
+	use_constants_instead_of_env = 0;
 
 	lock.l_type = F_RDLCK;
 	lock.l_len = 0;
@@ -157,11 +159,25 @@ int main(int argc, char *argv[])
 		}
 	} else if (strcmp(cmdname, CMD_PRINTCONST) == 0) {
 		config_file = CONFIG_CONST_FILE;
+
+		/* !!!! Quick and dirty hack
+		 * default environment changed to default constants
+		 * Expects that env is empty
+		 */
+		use_constants_instead_of_env = 1;
+
 		if (print_default_env == 0) {
 			if (fw_printenv(argc, argv) != 0)
 				retval = EXIT_FAILURE;
 		}
 	} else if (strcmp(cmdname, CMD_SETCONST) == 0) {
+
+		/* !!!! Quick and dirty hack
+		 * default environment changed to default constants
+		 * Expects that env is empty
+		 */
+		use_constants_instead_of_env = 1;
+
 		config_file = CONFIG_CONST_FILE;
 		if (!script_file) {
 			if (fw_setenv(argc, argv) != 0)

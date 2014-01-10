@@ -109,6 +109,10 @@ static int env_aes_cbc_crypt(char *data, const int enc);
 
 static int HaveRedundEnv = 0;
 
+static char default_constants[] = {
+	"\0"
+};
+
 static unsigned char active_flag = 1;
 /* obsolete_flag must be 0 to efficiently set it on NOR flash without erasing */
 static unsigned char obsolete_flag = 0;
@@ -119,6 +123,8 @@ static unsigned char obsolete_flag = 0;
 static int flash_io (int mode);
 static char *envmatch (char * s1, char * s2);
 static int parse_config (void);
+
+int use_constants_instead_of_env;
 
 char * config_file = CONFIG_ENV_FILE;
 #if defined(CONFIG_FILE)
@@ -187,20 +193,39 @@ char *fw_getdefenv(char *name)
 {
 	char *env, *nxt;
 
-	for (env = default_environment; *env; env = nxt + 1) {
-		char *val;
+	if (use_constants_instead_of_env == 0) {
+		for (env = default_environment; *env; env = nxt + 1) {
+			char *val;
 
-		for (nxt = env; *nxt; ++nxt) {
-			if (nxt >= &default_environment[ENV_SIZE]) {
-				fprintf(stderr, "## Error: "
-					"default environment not terminated\n");
-				return NULL;
+			for (nxt = env; *nxt; ++nxt) {
+				if (nxt >= &default_environment[ENV_SIZE]) {
+					fprintf(stderr, "## Error: "
+						"default environment not terminated\n");
+					return NULL;
+				}
 			}
+			val = envmatch(name, env);
+			if (!val)
+				continue;
+			return val;
 		}
-		val = envmatch(name, env);
-		if (!val)
-			continue;
-		return val;
+	}
+	else {
+		for (env = default_constants; *env; env = nxt + 1) {
+			char *val;
+
+			for (nxt = env; *nxt; ++nxt) {
+				if (nxt >= &default_constants[ENV_SIZE]) {
+					fprintf(stderr, "## Error: "
+						"default environment not terminated\n");
+					return NULL;
+				}
+			}
+			val = envmatch(name, env);
+			if (!val)
+				continue;
+			return val;
+		}
 	}
 	return NULL;
 }
@@ -240,10 +265,14 @@ static int parse_aes_key(char *key)
  */
 void fw_print_default_env(void)
 {
-	printf("env part size: %d\n", CONFIG_ENV_SIZE);
 
 	const char *p = default_environment;
 	int i = 0;
+
+	printf("env part size: %d\n", CONFIG_ENV_SIZE);
+
+	if (use_constants_instead_of_env == 1)
+		p = default_constants;
 	while (i < sizeof(default_environment)) {
 		int ret = printf("%s\n", p);
 		if (ret < 0) {
@@ -1253,7 +1282,10 @@ int fw_env_open(void)
 		if (!crc0_ok) {
 			fprintf (stderr,
 				"Warning: Bad CRC, using default environment\n");
-			memcpy(environment.data, default_environment, sizeof default_environment);
+			if (use_constants_instead_of_env == 0)
+				memcpy(environment.data, default_environment, sizeof default_environment);
+			else
+				memcpy(environment.data, default_constants, sizeof default_constants);
 		}
 	} else {
 		flag0 = *environment.flags;
@@ -1315,8 +1347,11 @@ int fw_env_open(void)
 		} else if (!crc0_ok && !crc1_ok) {
 			fprintf (stderr,
 				"Warning: Bad CRC, using default environment\n");
-			memcpy (environment.data, default_environment,
-				sizeof default_environment);
+
+			if (use_constants_instead_of_env == 0)
+				memcpy(environment.data, default_environment, sizeof default_environment);
+			else
+				memcpy(environment.data, default_constants, sizeof default_constants);
 			dev_current = 0;
 		} else {
 			switch (environment.flag_scheme) {

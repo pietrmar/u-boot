@@ -65,3 +65,4 @@ extern int fw_env_close(void);
 
 extern unsigned	long  crc32	 (unsigned long, const unsigned char *, unsigned);
 extern char	* config_file;
+extern int use_constants_instead_of_env;
