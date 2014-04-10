@@ -49,6 +49,8 @@
 #include <fsl_fastboot.h>
 #endif
 
+#include <const_env_common.h>
+
 DECLARE_GLOBAL_DATA_PTR;
 
 ulong monitor_flash_len;
@@ -234,6 +236,9 @@ init_fnc_t *init_sequence[] = {
 	get_clocks,
 #endif
 	env_init,		/* initialize environment */
+#ifdef CONFIG_CONST_ENV_COMMON
+	const_init,		/* initialize constants */
+#endif
 	init_baudrate,		/* initialze baudrate settings */
 	serial_init,		/* serial communications setup */
 	console_init_f,		/* stage 1 init of console */
@@ -597,6 +602,11 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		env_relocate();
 	else
 		set_default_env(NULL);
+
+#ifdef CONFIG_CONST_ENV_COMMON
+	/* initialize constants */
+	const_relocate();
+#endif
 
 #if defined(CONFIG_CMD_PCI) || defined(CONFIG_PCI)
 	arm_pci_init();

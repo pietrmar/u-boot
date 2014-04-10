@@ -40,6 +40,7 @@ obj-y += cmd_version.o
 obj-y += env_attr.o
 obj-y += env_callback.o
 obj-y += env_flags.o
+obj-$(CONFIG_CONST_ENV_COMMON) += const_env_common.o
 obj-$(CONFIG_ENV_IS_IN_DATAFLASH) += env_dataflash.o
 obj-$(CONFIG_ENV_IS_IN_EEPROM) += env_eeprom.o
 extra-$(CONFIG_ENV_IS_EMBEDDED) += env_embedded.o

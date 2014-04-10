@@ -53,6 +53,10 @@ typedef struct global_data {
 #endif
 	unsigned long env_addr;	/* Address  of Environment struct */
 	unsigned long env_valid;	/* Checksum of Environment valid? */
+#ifdef CONFIG_CONST_ENV_COMMON
+	unsigned long	const_addr;	    /* Address of Constants struct */
+	unsigned long	const_valid;	/* Checksum of Constants valid? */
+#endif
 
 	unsigned long ram_top;	/* Top address of RAM used by U-Boot */
 
@@ -75,6 +79,10 @@ typedef struct global_data {
 	unsigned long fdt_size;	/* Space reserved for relocated FDT */
 	struct jt_funcs *jt;		/* jump table */
 	char env_buf[32];	/* buffer for getenv() before reloc. */
+#ifdef CONFIG_CONST_ENV_COMMON
+	char		const_buf[32];	/* buffer for getconst() before reloc. */
+#endif
+
 #ifdef CONFIG_TRACE
 	void		*trace_buff;	/* The trace buffer */
 #endif
@@ -115,5 +123,6 @@ typedef struct global_data {
 #define GD_FLG_ENV_READY	0x00080	/* Env. imported into hash table   */
 #define GD_FLG_SERIAL_READY	0x00100	/* Pre-reloc serial console ready  */
 #define GD_FLG_FULL_MALLOC_INIT	0x00200	/* Full malloc() is ready	   */
+#define GD_FLG_CONST_READY      0x00400  /* Constants imported into hash table   */
 
 #endif /* __ASM_GENERIC_GBL_DATA_H */
