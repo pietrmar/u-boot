@@ -83,3 +83,6 @@ GTAGS
 *.orig
 *~
 \#*#
+# generated img and txt file of env partition data
+/u-boot-env.txt
+/u-boot-env.img
