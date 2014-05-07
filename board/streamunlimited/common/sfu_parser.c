@@ -1116,6 +1116,77 @@ static int32_t ExtractChunkSfuHdr(
 
 #define SFU_BUF_LEN     (80)
 
+static int check_sfu_signature(uint32_t addr, uint32_t *sfu_addr, int verify)
+{
+#ifdef CONFIG_FIT
+	const char *fit_uname = "kernel";
+	ulong		len;
+	const image_header_t *hdr;
+	ulong		*data;
+	void *buf;
+	const void*	fit_hdr;
+	int		noffset;
+	const void	*fit_data;
+	size_t		fit_len;
+
+	*sfu_addr = addr;
+
+	buf = map_sysmem(addr, 0);
+	switch (genimg_get_format(buf)) {
+	case IMAGE_FORMAT_FIT:
+		puts("   FIT image found\n");
+		if (fit_uname == NULL) {
+			puts ("No FIT subimage unit name\n");
+			return 1;
+		}
+
+		fit_hdr = buf;
+		if (!fit_check_format(fit_hdr)) {
+			puts ("Bad FIT image format\n");
+			return 1;
+		}
+
+		if (verify) {
+			fit_print_contents(fit_hdr);
+		}
+
+		/* get script component image node offset */
+		noffset = fit_image_get_node (fit_hdr, fit_uname);
+		if (noffset < 0) {
+			printf ("Can't find '%s' FIT subimage\n", fit_uname);
+			return 1;
+		}
+
+		if (!fit_image_check_type (fit_hdr, noffset, IH_TYPE_KERNEL)) {
+			puts ("Not a image image\n");
+			return 1;
+		}
+
+		/* verify integrity */
+		if (verify) {
+			puts("Checking signature:");
+			if (!fit_image_verify(fit_hdr, noffset)) {
+				puts ("Bad Data Hash\n");
+				return 1;
+			}
+			puts("\n");
+		}
+
+		/* get script subimage data address and length */
+		if (fit_image_get_data(fit_hdr, noffset, &fit_data, &fit_len)) {
+			puts ("Could not find subimage data\n");
+			return 1;
+		}
+		*sfu_addr = (uint32_t *)fit_data;
+		break;
+	default:
+		puts ("Wrong image format\n");
+		return 1;
+	}
+#endif
+	return 0;
+}
+
 static int do_sfu(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 {
 	char*           cmd;
@@ -1129,7 +1200,8 @@ static int do_sfu(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	int             idx;
 	char            hexchar[3];
 	int             status = 0;
-
+	uint32_t sfu_addr;
+	int verify = 0;
 
 	if (argc == 2) {
 		/*
@@ -1169,6 +1241,13 @@ static int do_sfu(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 
 	cmd = argv[1];
 	addr = simple_strtoul(argv[2], NULL, 16);
+
+	if (strcmp(cmd, "valid") == 0) {
+		verify = 1;
+	}
+	/* skip FIT bytes to get correct sfu address */
+	if (check_sfu_signature(addr, &sfu_addr, verify) == 0)
+		addr = sfu_addr;
 
 	/*
 	 * Syntax is:
