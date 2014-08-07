@@ -26,7 +26,6 @@ always := fw_printenv_host fw_printenv
 
 $(obj)/fw_printenv: FORCE
 	$(CC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $(HOSTSRCS)
-	$(STRIP) $@
 
 $(obj)/fw_printenv_host: FORCE
 	$(HOSTCC) $(HOSTCFLAGS) $(HOSTLDFLAGS) -o $@ $(HOSTSRCS)
