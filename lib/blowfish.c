@@ -107,32 +107,20 @@ void InitializeBlowfish(char key[], short keybytes)
 
 	/* Use the array initialization data (BLOWFISH_DAT[]) */
 	for (i = 0, offset = 0; i < N + 2; ++i, offset+=4) {
-		data = *((unsigned long*)&BLOWFISH_DAT[offset]);
-
-#ifdef little_endian      /* Eg: Intel   We want to process things in byte   */
-		/*   order, not as rearranged in a longword          */
-		data = ((data & 0xFF000000) >> 24) |
-			((data & 0x00FF0000) >>  8) |
-			((data & 0x0000FF00) <<  8) |
-			((data & 0x000000FF) << 24);
-#endif
-
-		P[i] = data;
+		// BLOWFISH_DAT is in big-endian format
+		P[i] = ((BLOWFISH_DAT[offset+3]<<0) |
+				(BLOWFISH_DAT[offset+2]<<8) |
+				(BLOWFISH_DAT[offset+1]<<16) |
+				(BLOWFISH_DAT[offset+0]<<24));
 	}
 
 	for (i = 0; i < 4; ++i) {
 		for (j = 0; j < 256; ++j, offset+=4) {
-			data = *((unsigned long*)&BLOWFISH_DAT[offset]);
-
-#ifdef little_endian      /* Eg: Intel   We want to process things in byte   */
-			/*   order, not as rearranged in a longword          */
-			data = ((data & 0xFF000000) >> 24) |
-				((data & 0x00FF0000) >>  8) |
-				((data & 0x0000FF00) <<  8) |
-				((data & 0x000000FF) << 24);
-	#endif
-
-			S[i][j] = data;
+			// BLOWFISH_DAT is in big-endian format
+			S[i][j] = ((BLOWFISH_DAT[offset+3]<<0) |
+					   (BLOWFISH_DAT[offset+2]<<8) |
+					   (BLOWFISH_DAT[offset+1]<<16) |
+					   (BLOWFISH_DAT[offset+0]<<24));
 		}
 	}
 
