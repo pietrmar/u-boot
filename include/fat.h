@@ -65,6 +65,10 @@
 #define LS_DIR		1
 #define LS_ROOT		2
 
+/* Flags telling whether we should find a file in a directory */
+#define FIND_NO		0
+#define FIND_YES	1
+
 #define ISDIRDELIM(c)	((c) == '/' || (c) == '\\')
 
 #define FSTYPE_NONE	(-1)
@@ -180,11 +184,13 @@ typedef int	(file_detectfs_func)(void);
 typedef int	(file_ls_func)(const char *dir);
 typedef int	(file_read_func)(const char *filename, void *buffer,
 				 int maxsize);
+typedef int (file_find_func)(const char *dir, const char *findfn);
 
 struct filesystem {
 	file_detectfs_func	*detect;
 	file_ls_func		*ls;
 	file_read_func		*read;
+	file_find_func		*find;
 	const char		name[12];
 };
 
@@ -211,4 +217,5 @@ int file_fat_write(const char *filename, void *buf, loff_t offset, loff_t len,
 int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 		  loff_t *actread);
 void fat_close(void);
+int file_fat_find(const char *dir, const char *findfn);
 #endif /* _FAT_H_ */

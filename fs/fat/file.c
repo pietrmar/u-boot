@@ -18,7 +18,7 @@
 
 /* Supported filesystems */
 static const struct filesystem filesystems[] = {
-	{ file_fat_detectfs,  file_fat_ls,  file_fat_read,  "FAT" },
+	{ file_fat_detectfs,  file_fat_ls,  file_fat_read,  file_fat_find,  "FAT" },
 };
 #define NUM_FILESYS	(sizeof(filesystems)/sizeof(struct filesystem))
 

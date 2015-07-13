@@ -149,3 +149,51 @@ U_BOOT_CMD(
 	"      to 'dev' on 'interface'"
 );
 #endif
+
+int do_fat_find (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
+{
+	int ret=0;
+	int dev=0;
+	int part=1;
+	char *ep;
+	block_dev_desc_t *dev_desc=NULL;
+
+	if (argc < 4) {
+		printf("usage: fatfind <interface> <dev[:part]> <directory> <findfn>\n");
+		return 1;
+	}
+	dev = (int)simple_strtoul(argv[2], &ep, 16);
+	dev_desc = get_dev(argv[1],dev);
+	if (dev_desc == NULL) {
+		puts("\n** Invalid boot device **\n");
+		return 1;
+	}
+	if (*ep) {
+		if (*ep != ':') {
+			puts("\n** Invalid boot device, use `dev[:part]' **\n");
+			return 1;
+		}
+		part = (int)simple_strtoul(++ep, NULL, 16);
+	}
+	if (fat_register_device(dev_desc,part)!=0) {
+		printf("\n** Unable to use %s %d:%d for fatfind **\n",
+			argv[1], dev, part);
+		return 1;
+	}
+    ret = file_fat_find(argv[3], argv[4]);
+	if(ret!=0) {
+		printf("\n** Unable to find \"%s\" on %s %d:%d **\n",
+			argv[4], argv[1], dev, part);
+	} else {
+		printf("\n** Found \"%s\" on %s %d:%d **\n",
+			argv[4], argv[1], dev, part);
+    }
+	return ret;
+}
+
+U_BOOT_CMD(
+	fatfind,	5,	1,	do_fat_find,
+	"find file in a directory",
+	"<interface> <dev[:part]> <directory> <findfn>\n"
+	"    - find findfn from 'dev' on 'interface' in a 'directory'"
+);

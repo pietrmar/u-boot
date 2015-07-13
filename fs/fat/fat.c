@@ -36,6 +36,7 @@ static void downcase(char *str)
 	}
 }
 
+static volatile int s_FatFileNotFound = 1;
 static block_dev_desc_t *cur_dev;
 static disk_partition_t cur_part_info;
 
@@ -576,7 +577,7 @@ __u8 get_dentfromdir_block[MAX_CLUSTSIZE]
 
 static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 				  char *filename, dir_entry *retdent,
-				  int dols)
+				  int dols, int dofind, const char *findfn)
 {
 	__u16 prevcksum = 0xffff;
 	__u32 curclust = START(retdent);
@@ -633,14 +634,22 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 						}
 						if (doit) {
 							if (dirc == ' ') {
-								printf(" %8u   %s%c\n",
-								       FAT2CPU32(dentptr->size),
-									l_name,
-									dirc);
+								if (dofind) {
+									if (0 == strcmp(findfn, l_name)) {
+										s_FatFileNotFound = 0;
+									}
+								} else {
+									printf(" %8u   %s%c\n",
+									       FAT2CPU32(dentptr->size),
+										l_name,
+										dirc);
+								}
 							} else {
-								printf("            %s%c\n",
-									l_name,
-									dirc);
+								if (!dofind) {
+									printf("            %s%c\n",
+										l_name,
+										dirc);
+								}
 							}
 						}
 						dentptr++;
@@ -655,8 +664,10 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 			}
 			if (dentptr->name[0] == 0) {
 				if (dols) {
-					printf("\n%d file(s), %d dir(s)\n\n",
-						files, dirs);
+					if (!dofind) {
+						printf("\n%d file(s), %d dir(s)\n\n",
+							files, dirs);
+					}
 				}
 				debug("Dentname == NULL - %d\n", i);
 				return NULL;
@@ -690,12 +701,20 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 
 				if (doit) {
 					if (dirc == ' ') {
-						printf(" %8u   %s%c\n",
-						       FAT2CPU32(dentptr->size),
-							s_name, dirc);
+						if (dofind) {
+							if (0 == strcmp(findfn, s_name)) {
+								s_FatFileNotFound = 0;
+							}
+						} else {
+							printf(" %8u   %s%c\n",
+							       FAT2CPU32(dentptr->size),
+								s_name, dirc);
+						}
 					} else {
-						printf("            %s%c\n",
-							s_name, dirc);
+						if (!dofind) {
+							printf("            %s%c\n",
+								s_name, dirc);
+						}
 					}
 				}
 
@@ -807,7 +826,7 @@ __u8 do_fat_read_at_block[MAX_CLUSTSIZE]
 	__aligned(ARCH_DMA_MINALIGN);
 
 int do_fat_read_at(const char *filename, loff_t pos, void *buffer,
-		   loff_t maxsize, int dols, int dogetsize, loff_t *size)
+		   loff_t maxsize, int dols, int dogetsize, loff_t *size, int dofind, const char *findfn)
 {
 	char fnamecopy[2048];
 	boot_sector bs;
@@ -1006,14 +1025,22 @@ int do_fat_read_at(const char *filename, loff_t pos, void *buffer,
 						}
 						if (doit) {
 							if (dirc == ' ') {
-								printf(" %8u   %s%c\n",
-								       FAT2CPU32(dentptr->size),
-									l_name,
-									dirc);
+								if (dofind) {
+									if (0 == strcmp(findfn, l_name)) {
+										s_FatFileNotFound = 0;
+									}
+								} else {
+									printf(" %8u   %s%c\n",
+									       FAT2CPU32(dentptr->size),
+										l_name,
+										dirc);
+								}
 							} else {
-								printf("            %s%c\n",
-									l_name,
-									dirc);
+								if (!dofind) {
+									printf("            %s%c\n",
+										l_name,
+										dirc);
+								}
 							}
 						}
 						dentptr++;
@@ -1029,8 +1056,10 @@ int do_fat_read_at(const char *filename, loff_t pos, void *buffer,
 			} else if (dentptr->name[0] == 0) {
 				debug("RootDentname == NULL - %d\n", i);
 				if (dols == LS_ROOT) {
-					printf("\n%d file(s), %d dir(s)\n\n",
-						files, dirs);
+					if (!dofind) {
+						printf("\n%d file(s), %d dir(s)\n\n",
+							files, dirs);
+					}
 					ret = 0;
 				}
 				goto exit;
@@ -1064,12 +1093,20 @@ int do_fat_read_at(const char *filename, loff_t pos, void *buffer,
 				}
 				if (doit) {
 					if (dirc == ' ') {
-						printf(" %8u   %s%c\n",
-						       FAT2CPU32(dentptr->size),
-							s_name, dirc);
+						if (dofind) {
+							if (0 == strcmp(findfn, s_name)) {
+								s_FatFileNotFound = 0;
+							}
+						} else {
+							printf(" %8u   %s%c\n",
+							       FAT2CPU32(dentptr->size),
+								s_name, dirc);
+						}
 					} else {
-						printf("            %s%c\n",
-							s_name, dirc);
+						if (!dofind) {
+							printf("            %s%c\n",
+								s_name, dirc);
+						}
 					}
 				}
 				dentptr++;
@@ -1171,7 +1208,7 @@ rootdir_done:
 		}
 
 		if (get_dentfromdir(mydata, startsect, subname, dentptr,
-				     isdir ? 0 : dols) == NULL) {
+				     isdir ? 0 : dols, dofind, findfn) == NULL) {
 			if (dols && !isdir)
 				*size = 0;
 			goto exit;
@@ -1198,9 +1235,9 @@ exit:
 }
 
 int do_fat_read(const char *filename, void *buffer, loff_t maxsize, int dols,
-		loff_t *actread)
+		loff_t *actread, int dofind, const char *findfn)
 {
-	return do_fat_read_at(filename, 0, buffer, maxsize, dols, 0, actread);
+	return do_fat_read_at(filename, 0, buffer, maxsize, dols, 0, actread, dofind, findfn);
 }
 
 int file_fat_detectfs(void)
@@ -1269,7 +1306,7 @@ int file_fat_ls(const char *dir)
 {
 	loff_t size;
 
-	return do_fat_read(dir, NULL, 0, LS_YES, &size);
+	return do_fat_read(dir, NULL, 0, LS_YES, &size, FIND_NO, NULL);
 }
 
 int fat_exists(const char *filename)
@@ -1277,13 +1314,13 @@ int fat_exists(const char *filename)
 	int ret;
 	loff_t size;
 
-	ret = do_fat_read_at(filename, 0, NULL, 0, LS_NO, 1, &size);
+	ret = do_fat_read_at(filename, 0, NULL, 0, LS_NO, 1, &size, FIND_NO, NULL);
 	return ret == 0;
 }
 
 int fat_size(const char *filename, loff_t *size)
 {
-	return do_fat_read_at(filename, 0, NULL, 0, LS_NO, 1, size);
+	return do_fat_read_at(filename, 0, NULL, 0, LS_NO, 1, size, FIND_NO, NULL);
 }
 
 int file_fat_read_at(const char *filename, loff_t pos, void *buffer,
@@ -1291,7 +1328,7 @@ int file_fat_read_at(const char *filename, loff_t pos, void *buffer,
 {
 	printf("reading %s\n", filename);
 	return do_fat_read_at(filename, pos, buffer, maxsize, LS_NO, 0,
-			      actread);
+			      actread, FIND_NO, NULL);
 }
 
 int file_fat_read(const char *filename, void *buffer, int maxsize)
@@ -1320,4 +1357,13 @@ int fat_read_file(const char *filename, void *buf, loff_t offset, loff_t len,
 
 void fat_close(void)
 {
+}
+
+int file_fat_find (const char *dir, const char *findfn)
+{
+	loff_t size;
+	s_FatFileNotFound = 1;
+	downcase((char *)findfn);
+	(void)do_fat_read_at(dir, 0, NULL, 0, LS_YES, 1, &size, FIND_YES, findfn);
+	return s_FatFileNotFound;
 }
