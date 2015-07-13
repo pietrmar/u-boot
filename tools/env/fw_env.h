@@ -53,6 +53,7 @@
 #endif
 
 extern int   fw_printenv(int argc, char *argv[]);
+extern void fw_print_default_env(void);
 extern char *fw_getenv  (char *name);
 extern int fw_setenv  (int argc, char *argv[]);
 extern int fw_parse_script(char *fname);

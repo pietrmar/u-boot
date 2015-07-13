@@ -51,6 +51,7 @@ void usage(void)
 	fprintf(stderr, "fw_printenv/fw_setenv, "
 		"a command line interface to U-Boot environment\n\n"
 		"usage:\tfw_printenv [-a key] [-n] [variable name]\n"
+		"\tfw_printenv -d\n"
 		"\tfw_setenv [-a key] [variable name] [variable value]\n"
 		"\tfw_setenv -s [ file ]\n"
 		"\tfw_setenv -s - < [ file ]\n\n"
@@ -106,13 +107,17 @@ int main(int argc, char *argv[])
 		cmdname = p + 1;
 	}
 
-	while ((c = getopt_long (argc, argv, "a:ns:h",
+	while ((c = getopt_long (argc, argv, "a:ns:dh",
 		long_options, NULL)) != EOF) {
 		switch (c) {
 		case 'a':
 			/* AES key, handled later */
 			break;
 		case 'n':
+			/* handled in fw_printenv */
+			break;
+		case 'd':
+			print_default_env = 1;
 			/* handled in fw_printenv */
 			break;
 		case 's':
@@ -130,8 +135,12 @@ int main(int argc, char *argv[])
 	}
 
 	if (strcmp(cmdname, CMD_PRINTENV) == 0) {
-		if (fw_printenv(argc, argv) != 0)
-			retval = EXIT_FAILURE;
+		if (print_default_env != 0) {
+			fw_print_default_env();
+		} else {
+			if (fw_printenv(argc, argv) != 0)
+				retval = EXIT_FAILURE;
+		}
 	} else if (strcmp(cmdname, CMD_SETENV) == 0) {
 		if (!script_file) {
 			if (fw_setenv(argc, argv) != 0)

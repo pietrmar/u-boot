@@ -235,6 +235,26 @@ static int parse_aes_key(char *key)
 }
 
 /*
+ * Print the default env. definition
+ */
+void fw_print_default_env(void)
+{
+	printf("env part size: %d\n", CONFIG_ENV_SIZE);
+
+	const char *p = default_environment;
+	int i = 0;
+	while (i < sizeof(default_environment)) {
+		int ret = printf("%s\n", p);
+		if (ret < 0) {
+			fprintf(stderr, "Failed to print default environment variables.\n");
+			return;
+		}
+		i += ret;
+		p += ret;
+	}
+}
+
+/*
  * Print the current definition of one, or more, or all
  * environment variables
  */
