@@ -20,6 +20,7 @@
 #endif
 #include <dm.h>
 #include <environment.h>
+#include <const_env_common.h>
 #include <fdtdec.h>
 #if defined(CONFIG_CMD_IDE)
 #include <ide.h>
@@ -465,6 +466,12 @@ static int initr_env(void)
 #endif /* CONFIG_I2CFAST */
 #endif /* CONFIG_405GP, CONFIG_405EP */
 #endif /* CONFIG_SYS_EXTBDINFO */
+
+#ifdef CONFIG_CONST_ENV_COMMON
+	// init also const env at same place
+	const_init();
+	const_relocate();
+#endif /* CONFIG_CONST_ENV_COMMON */
 	return 0;
 }
 
