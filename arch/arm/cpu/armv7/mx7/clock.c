@@ -74,6 +74,11 @@ void enable_thermal_clk(void)
 }
 #endif
 
+void enable_adc_clk(int enable)
+{
+	clock_enable(CCGR_ADC, enable);
+}
+
 void enable_usboh3_clk(unsigned char enable)
 {
 	u32 target;
