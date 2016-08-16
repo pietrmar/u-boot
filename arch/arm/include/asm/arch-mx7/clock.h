@@ -345,4 +345,5 @@ void hab_caam_clock_enable(unsigned char enable);
 #endif
 void mxs_set_lcdclk(uint32_t base_addr, uint32_t freq);
 void enable_thermal_clk(void);
+void enable_adc_clk(int enable);
 #endif

@@ -23,6 +23,7 @@ obj-$(CONFIG_SYS_I2C_MXC) += i2c-mxv7.o
 obj-$(CONFIG_GPT_TIMER) += timer.o
 obj-$(CONFIG_MXC_RDC) += rdc-sema.o
 obj-$(CONFIG_SYSCOUNTER_TIMER) += syscounter.o
+obj-$(CONFIG_SYS_ADC_MXC) += adc.o
 endif
 ifeq ($(SOC),$(filter $(SOC),mx7 mx6 mxs))
 obj-y	+= misc.o
