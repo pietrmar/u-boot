@@ -813,6 +813,9 @@ u-boot-dtb.bin: u-boot.bin dts/dt.dtb FORCE
 
 %.imx: %.bin
 	$(Q)$(MAKE) $(build)=arch/arm/imx-common $@
+	ln -sf tools/env/fw_printenv_host fw_printenv
+	./fw_printenv -d > $(obj)/u-boot-env.txt
+	unlink fw_printenv
 
 quiet_cmd_copy = COPY    $@
       cmd_copy = cp $< $@
