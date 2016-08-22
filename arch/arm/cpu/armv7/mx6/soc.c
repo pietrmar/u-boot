@@ -166,6 +166,18 @@ void init_aips(void)
 #endif
 }
 
+static void init_csu(void)
+{
+#ifdef CONFIG_ARMV7_NONSEC
+	int i;
+	u32 csu = 0x21c0000;
+	/* This is to allow device can be accessed in non-secure world */
+	for (i = 0; i < 40; i ++) {
+		*((u32 *)csu + i) = 0xffffffff;
+	}
+#endif
+}
+
 static void clear_ldo_ramp(void)
 {
 	struct anatop_regs *anatop = (struct anatop_regs *)ANATOP_BASE_ADDR;
@@ -448,6 +460,8 @@ int arch_cpu_init(void)
 #endif
 
 	init_aips();
+
+	init_csu();
 
 	/* Need to clear MMDC_CHx_MASK to make warm reset work. */
 	clear_mmdc_ch_mask();
@@ -1090,4 +1104,23 @@ void fastboot_enable_flag(void)
 	setbits_le32(SNVS_BASE_ADDR + SNVS_LPGPR,
 		ANDROID_FASTBOOT_BOOT);
 }
+
 #endif /*CONFIG_FSL_FASTBOOT*/
+
+#ifdef CONFIG_ARMV7_TEE
+#ifdef CONFIG_MX6UL
+void smp_kick_all_cpus(void)
+{
+        return;
+}
+void smp_set_core_boot_addr(unsigned long addr, int corenr)
+{
+	return;
+}
+
+void smp_waitloop(unsigned previous_address)
+{
+	return;
+}
+#endif
+#endif
