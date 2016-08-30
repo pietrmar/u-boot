@@ -255,8 +255,7 @@ const char *bootdelay_process(void)
 		disconnect_from_pc();
 		printf("Boot from USB for mfgtools\n");
 		bootdelay = 0;
-		set_default_env("Use default environment for \
-				 mfgtools\n");
+		/* set_default_env("Use default environment for mfgtools\n"); */
 	} else {
 		printf("Normal Boot\n");
 	}
