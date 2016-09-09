@@ -21,6 +21,11 @@
 #define CONFIG_DISPLAY_CPUINFO
 #define CONFIG_DISPLAY_BOARDINFO
 
+#define CONFIG_FIT
+#define CONFIG_FIT_SIGNATURE
+#define CONFIG_RSA
+#define CONFIG_RSA_SOFTWARE_EXP
+
 #define CONFIG_DBG_MONITOR
 /* uncomment for PLUGIN mode support */
 /* #define CONFIG_USE_PLUGIN */
