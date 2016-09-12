@@ -1201,7 +1201,7 @@ static int do_sfu(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	char            hexchar[3];
 	int             status = 0;
 	uint32_t sfu_addr;
-	int verify = 0;
+	int verify = 0, ret;
 
 	if (argc == 2) {
 		/*
@@ -1245,9 +1245,14 @@ static int do_sfu(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	if (strcmp(cmd, "valid") == 0) {
 		verify = 1;
 	}
+
 	/* skip FIT bytes to get correct sfu address */
-	if (check_sfu_signature(addr, &sfu_addr, verify) == 0)
+	ret = check_sfu_signature(addr, &sfu_addr, verify);
+	if (ret) {
+		return ret;
+	} else {
 		addr = sfu_addr;
+	}
 
 	/*
 	 * Syntax is:
