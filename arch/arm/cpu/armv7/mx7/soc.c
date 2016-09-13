@@ -547,15 +547,21 @@ void fastboot_enable_flag(void)
 #endif /*CONFIG_FSL_FASTBOOT*/
 
 #ifdef CONFIG_ARMV7_TEE
+#define GIC_ADDR 0x31001000
+#define GICD_SGIR_OFF 0xf00
+#define SRC_A7RCR1 0x30390008
+#define SRC_GPR3 0x3039007c
 void smp_kick_all_cpus(void)
 {
+	*(u32 *)(GIC_ADDR | GICD_SGIR_OFF) = 1U << 24;
+	*(u32 *)(SRC_A7RCR1) = *(u32 *)(SRC_A7RCR1) | (1 << 1);
 }
 
 void smp_set_core_boot_addr(unsigned long addr, int corenr)
 {
-}
+	*(unsigned long *)(SRC_GPR3) = addr;
 
-void smp_waitloop(unsigned previous_address)
-{
+	/* make sure this write is really executed */
+	__asm__ volatile ("dsb\n");
 }
 #endif
