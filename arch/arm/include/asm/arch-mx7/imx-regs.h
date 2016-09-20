@@ -214,7 +214,12 @@
 #define RDC_BASE_ADDR RDC_IPS_BASE_ADDR
 
 #define FEC_QUIRK_ENET_MAC
+#define SNVS_LPCR	0x38
 #define SNVS_LPGPR	0x68
+#define SNVS_LPGPR0_30	0x90
+#define SNVS_LPGPR0_31	0x94
+#define SNVS_LPGPR0_32	0x98
+#define SNVS_LPGPR0_33	0x9C
 
 #define CHIP_REV_1_0                 0x10
 #define CHIP_REV_1_1                 0x11
