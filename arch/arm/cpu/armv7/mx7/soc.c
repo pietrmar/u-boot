@@ -237,11 +237,33 @@ static void init_csu(void)
 #endif
 }
 
+static void init_secure_mem(void)
+{
+#ifdef CONFIG_ARMV7_NONSEC
+	// set 0x80000000 - 0xa0000000 accessible from nonsecure world
+	*((u32 *)0x30780110) = 0x80000000;
+	*((u32 *)0x30780118) = 0xf0000039;
+
+	// set last 3MB of memory accessible only from secure world
+	// use 4MB region, disable first two subregions
+	*((u32 *)0x30780120) = 0x80000000 + PHYS_SDRAM_SIZE - 0x400000;
+	*((u32 *)0x30780128) = 0xc000032b;
+
+	// lockdown all regions
+	*((u32 *)0x30780008) = 0x8000000f;
+
+	// lock speculation control, security inversion and lockdown registers
+	*((u32 *)0x3078000c) = 0x00000007;
+#endif
+}
+
 int arch_cpu_init(void)
 {
 	init_aips();
 
 	init_csu();
+
+	init_secure_mem();
 
 	/* Disable PDE bit of WMCR register */
 	imx_set_wdog_powerdown(false);
