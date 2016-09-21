@@ -138,7 +138,7 @@ static void fec_mii_setspeed(struct ethernet_regs *eth)
 	 * Set MII_SPEED = (1/(mii_speed * 2)) * System Clock
 	 * and do not drop the Preamble.
 	 */
-	register u32 speed = DIV_ROUND_UP(imx_get_fecclk(), 5000000);
+	register u32 speed = DIV_ROUND_UP(imx_get_fecclk(), 4000000);
 	register u32 holdtime = DIV_ROUND_UP(imx_get_fecclk(), 100000000) - 1;
 #ifdef FEC_QUIRK_ENET_MAC
 	speed--;
