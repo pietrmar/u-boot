@@ -615,7 +615,7 @@ int fw_setenv(int argc, char *argv[])
 int fw_parse_script(char *fname)
 {
 	FILE *fp;
-	char dump[1024];	/* Maximum line length in the file */
+	char dump[8192];	/* Maximum line length in the file */
 	char *name;
 	char *val;
 	int lineno = 0;
