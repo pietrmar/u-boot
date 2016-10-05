@@ -458,12 +458,15 @@ void s_init(void)
 	return;
 }
 
+/* On the stream810 we are overriding reset_misc() for our needs, so we have to remove it here. */
+#if 0
 void reset_misc(void)
 {
 #ifdef CONFIG_VIDEO_MXS
 	lcdif_power_down();
 #endif
 }
+#endif
 
 #ifdef CONFIG_FSL_FASTBOOT
 
