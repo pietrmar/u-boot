@@ -994,10 +994,10 @@ int set_clk_enet(enum enet_freq type)
 	if (ret != 0)
 		return ret;
 
-	/* set enet axi clock 196M: 392/2 */
-	target = CLK_ROOT_ON | ENET_AXI_CLK_ROOT_FROM_PLL_SYS_PFD4_CLK |
+	/* set enet axi clock: 250MHz */
+	target = CLK_ROOT_ON | ENET_AXI_CLK_ROOT_FROM_PLL_ENET_MAIN_250M_CLK |
 		 CLK_ROOT_PRE_DIV(CLK_ROOT_PRE_DIV1) |
-		 CLK_ROOT_POST_DIV(CLK_ROOT_POST_DIV2);
+		 CLK_ROOT_POST_DIV(CLK_ROOT_POST_DIV1);
 	clock_set_target_val(ENET_AXI_CLK_ROOT, target);
 
 	target = CLK_ROOT_ON | enet1_ref |
