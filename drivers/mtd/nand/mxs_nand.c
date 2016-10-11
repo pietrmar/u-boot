@@ -78,6 +78,8 @@ struct mxs_nand_info {
 	/* DMA descriptors */
 	struct mxs_dma_desc	**desc;
 	uint32_t		desc_index;
+
+	uint8_t 	randomized_write;
 };
 
 struct nand_ecclayout fake_ecc_layout;
@@ -599,22 +601,54 @@ static void mxs_nand_write_buf(struct mtd_info *mtd, const uint8_t *buf,
 
 	memcpy(nand_info->data_buf, buf, length);
 
-	/* Compile the DMA descriptor - a descriptor that writes data. */
-	d = mxs_nand_get_dma_desc(nand_info);
-	d->cmd.data =
-		MXS_DMA_DESC_COMMAND_DMA_READ | MXS_DMA_DESC_IRQ |
-		MXS_DMA_DESC_DEC_SEM | MXS_DMA_DESC_WAIT4END |
-		(1 << MXS_DMA_DESC_PIO_WORDS_OFFSET) |
-		(length << MXS_DMA_DESC_BYTES_OFFSET);
+	/*
+	 * When using randomized write ECC will be enabled so make sure you disable
+	 * it in the flash layout registers before using a randomized write.
+	 */
+	if (nand_info->randomized_write) {
+		/* Compile the DMA descriptor - write data. */
+		d = mxs_nand_get_dma_desc(nand_info);
+		d->cmd.data =
+			MXS_DMA_DESC_COMMAND_NO_DMAXFER | MXS_DMA_DESC_IRQ |
+			MXS_DMA_DESC_DEC_SEM | MXS_DMA_DESC_WAIT4END |
+			(6 << MXS_DMA_DESC_PIO_WORDS_OFFSET);
 
-	d->cmd.address = (dma_addr_t)nand_info->data_buf;
+		d->cmd.address = 0;
 
-	d->cmd.pio_words[0] =
-		GPMI_CTRL0_COMMAND_MODE_WRITE |
-		GPMI_CTRL0_WORD_LENGTH |
-		(nand_info->cur_chip << GPMI_CTRL0_CS_OFFSET) |
-		GPMI_CTRL0_ADDRESS_NAND_DATA |
-		length;
+		d->cmd.pio_words[0] =
+			GPMI_CTRL0_COMMAND_MODE_WRITE |
+			GPMI_CTRL0_WORD_LENGTH |
+			(nand_info->cur_chip << GPMI_CTRL0_CS_OFFSET) |
+			GPMI_CTRL0_ADDRESS_NAND_DATA;
+		d->cmd.pio_words[1] = 0;
+		d->cmd.pio_words[2] =
+			GPMI_ECCCTRL_ENABLE_ECC |
+			GPMI_ECCCTRL_ENABLE_RANDOMIZER |
+			(2 << GPMI_ECCCTRL_RANDOMIZER_TYPE_OFFSET) |
+			GPMI_ECCCTRL_ECC_CMD_ENCODE |
+			GPMI_ECCCTRL_BUFFER_MASK_BCH_PAGE;
+		d->cmd.pio_words[3] = (mtd->writesize + mtd->oobsize);
+		d->cmd.pio_words[4] = (dma_addr_t)nand_info->data_buf;
+		d->cmd.pio_words[5] = (dma_addr_t)nand_info->oob_buf;
+	} else {
+		/* Compile the DMA descriptor - a descriptor that writes data. */
+		d = mxs_nand_get_dma_desc(nand_info);
+		d->cmd.data =
+			MXS_DMA_DESC_COMMAND_DMA_READ | MXS_DMA_DESC_IRQ |
+			MXS_DMA_DESC_DEC_SEM | MXS_DMA_DESC_WAIT4END |
+			(1 << MXS_DMA_DESC_PIO_WORDS_OFFSET) |
+			(length << MXS_DMA_DESC_BYTES_OFFSET);
+
+		d->cmd.address = (dma_addr_t)nand_info->data_buf;
+
+		d->cmd.pio_words[0] =
+			GPMI_CTRL0_COMMAND_MODE_WRITE |
+			GPMI_CTRL0_WORD_LENGTH |
+			(nand_info->cur_chip << GPMI_CTRL0_CS_OFFSET) |
+			GPMI_CTRL0_ADDRESS_NAND_DATA |
+			length;
+	}
+
 
 	mxs_dma_desc_append(channel, d);
 
@@ -952,9 +986,15 @@ static int mxs_nand_hook_write_oob(struct mtd_info *mtd, loff_t to,
 	else
 		nand_info->raw_oob_mode = 0;
 
+	if (ops->flags & MTD_OOB_FLAG_RANDOMIZE)
+		nand_info->randomized_write = 1;
+	else
+		nand_info->randomized_write = 0;
+
 	ret = nand_info->hooked_write_oob(mtd, to, ops);
 
 	nand_info->raw_oob_mode = 0;
+	nand_info->randomized_write = 0;
 
 	return ret;
 }
