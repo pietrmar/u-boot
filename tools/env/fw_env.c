@@ -120,6 +120,7 @@ static int flash_io (int mode);
 static char *envmatch (char * s1, char * s2);
 static int parse_config (void);
 
+char * config_file = CONFIG_ENV_FILE;
 #if defined(CONFIG_FILE)
 static int get_config (char *);
 #endif
@@ -1382,7 +1383,7 @@ static int parse_config ()
 
 #if defined(CONFIG_FILE)
 	/* Fills in DEVNAME(), ENVSIZE(), DEVESIZE(). Or don't. */
-	if (get_config (CONFIG_FILE)) {
+	if (get_config (config_file)) {
 		fprintf (stderr,
 			"Cannot parse config file: %s\n", strerror (errno));
 		return -1;

@@ -20,7 +20,9 @@
  * See included "fw_env.config" sample file
  * for notes on configuration.
  */
-#define CONFIG_FILE     "/etc/fw_env.config"
+#define CONFIG_FILE         1
+#define CONFIG_ENV_FILE     "/etc/fw_env.config"
+#define CONFIG_CONST_FILE   "/etc/fw_const.config"
 
 #ifndef CONFIG_FILE
 #define HAVE_REDUND /* For systems with 2 env sectors */
@@ -62,3 +64,4 @@ extern int fw_env_write(char *name, char *value);
 extern int fw_env_close(void);
 
 extern unsigned	long  crc32	 (unsigned long, const unsigned char *, unsigned);
+extern char	* config_file;

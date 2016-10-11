@@ -38,6 +38,10 @@
 
 #define	CMD_PRINTENV	"fw_printenv"
 #define CMD_SETENV	"fw_setenv"
+#define	CMD_PRINTCONST	"fw_printconst"
+#define CMD_SETCONST	"fw_setconst"
+
+extern char * config_file;
 
 static struct option long_options[] = {
 	{"script", required_argument, NULL, 's'},
@@ -49,12 +53,12 @@ void usage(void)
 {
 
 	fprintf(stderr, "fw_printenv/fw_setenv, "
-		"a command line interface to U-Boot environment\n\n"
-		"usage:\tfw_printenv [-a key] [-n] [variable name]\n"
+		"a command line interface to U-Boot environment and constants\n\n"
+		"usage:\tfw_printenv/fw_printconst [-a key] [-n] [variable name]\n"
 		"\tfw_printenv -d\n"
-		"\tfw_setenv [-a key] [variable name] [variable value]\n"
-		"\tfw_setenv -s [ file ]\n"
-		"\tfw_setenv -s - < [ file ]\n\n"
+		"\tfw_setenv/fw_setconst [-a key] [variable name] [variable value]\n"
+		"\tfw_setenv/fw_setconst -s [ file ]\n"
+		"\tfw_setenv/fw_setconst -s - < [ file ]\n\n"
 		"The file passed as argument contains only pairs "
 		"name / value\n"
 		"Example:\n"
@@ -135,6 +139,7 @@ int main(int argc, char *argv[])
 	}
 
 	if (strcmp(cmdname, CMD_PRINTENV) == 0) {
+		config_file = CONFIG_ENV_FILE;
 		if (print_default_env != 0) {
 			fw_print_default_env();
 		} else {
@@ -142,6 +147,22 @@ int main(int argc, char *argv[])
 				retval = EXIT_FAILURE;
 		}
 	} else if (strcmp(cmdname, CMD_SETENV) == 0) {
+		config_file = CONFIG_ENV_FILE;
+		if (!script_file) {
+			if (fw_setenv(argc, argv) != 0)
+				retval = EXIT_FAILURE;
+		} else {
+			if (fw_parse_script(script_file) != 0)
+				retval = EXIT_FAILURE;
+		}
+	} else if (strcmp(cmdname, CMD_PRINTCONST) == 0) {
+		config_file = CONFIG_CONST_FILE;
+		if (print_default_env == 0) {
+			if (fw_printenv(argc, argv) != 0)
+				retval = EXIT_FAILURE;
+		}
+	} else if (strcmp(cmdname, CMD_SETCONST) == 0) {
+		config_file = CONFIG_CONST_FILE;
 		if (!script_file) {
 			if (fw_setenv(argc, argv) != 0)
 				retval = EXIT_FAILURE;
@@ -152,7 +173,8 @@ int main(int argc, char *argv[])
 	} else {
 		fprintf(stderr,
 			"Identity crisis - may be called as `" CMD_PRINTENV
-			"' or as `" CMD_SETENV "' but not as `%s'\n",
+			"' or as `" CMD_PRINTCONST "' or as `" CMD_SETENV
+			"' or as `" CMD_SETCONST "' but not as `%s'\n",
 			cmdname);
 		retval = EXIT_FAILURE;
 	}
