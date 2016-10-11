@@ -62,6 +62,8 @@ struct mtd_erase_region_info {
 	unsigned long *lockmap;		/* If keeping bitmap of locks */
 };
 
+#define MTD_OOB_FLAG_RANDOMIZE		(1 << 0)
+
 /**
  * struct mtd_oob_ops - oob operation operands
  * @mode:	operation mode
@@ -90,6 +92,7 @@ struct mtd_oob_ops {
 	uint32_t	ooboffs;
 	uint8_t		*datbuf;
 	uint8_t		*oobbuf;
+	uint8_t		flags;
 };
 
 #ifdef CONFIG_SYS_NAND_MAX_OOBFREE
