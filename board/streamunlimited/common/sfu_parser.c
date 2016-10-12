@@ -1246,6 +1246,25 @@ static int do_sfu(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		verify = 1;
 	}
 
+	if (strcmp(cmd, "chk_fit_hdr") == 0) {
+	/* check FIT header and return size */
+
+		void *buf = map_sysmem(addr, 0);
+		int ret;
+		char strbuf[16];
+
+		ret = fdt_check_header(buf);
+		if (ret) {
+			printf("Invalid FIT header! - %d\n", ret);
+			return 1;
+		}
+
+		printf("FDT total size:0x%08x\n", fdt_totalsize(buf));
+		sprintf(strbuf, "0x%08x", fdt_totalsize(buf));
+		status = set_hush_var_with_str_value("SFU_TOTAL_LEN", strbuf);
+		return 0;
+	}
+
 	/* skip FIT bytes to get correct sfu address */
 	ret = check_sfu_signature(addr, &sfu_addr, verify);
 	if (ret) {

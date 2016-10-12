@@ -573,9 +573,9 @@
                 "VALID_IMAGE=yes; " \
             "else " \
                 "echo \"INFO: Need to read the sfupdate from download partition...\"; " \
-                "if nand read ${sfu_load_addr} download 0x10; " \
+                "if nand read ${sfu_load_addr} download 0x64; " \
                     "then " \
-                    "if sfu magic ${sfu_load_addr}; " \
+                    "if sfu chk_fit_hdr ${sfu_load_addr}; " \
                         "then " \
                         "echo \"INFO: sfupdate image total length is ${SFU_TOTAL_LEN}\"; " \
                         "if nand read ${sfu_load_addr} download ${SFU_TOTAL_LEN}; " \
