@@ -125,7 +125,7 @@ static int read_cpu_temperature(struct udevice *dev)
 }
 #elif defined(CONFIG_MX7)
 #define TEMPERATURE_MIN		-40
-#define TEMPERATURE_HOT		85
+#define TEMPERATURE_HOT		105
 #define TEMPERATURE_MAX		125
 #define MEASURE_FREQ		327
 #define TEMPSENSE1_FINISHED	(1 << 11)
