@@ -207,7 +207,14 @@ static int do_fwup(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	 *   fwup usb_update_req
 	 */
 	if (strcmp(cmd, "usb_update_req") == 0) {
-		return fwupdate_getUsbUpdateReq();
+		/*
+		 * fwupdate_getUsbUpdateReq() return 1 if we want to
+		 * request an update and 0 otherwise. So we want the
+		 * command in u-boot to fail if no update request is
+		 * set and to succeed if an update request is pending.
+		 * Thats why we need to invert the result here.
+		 */
+		return !fwupdate_getUsbUpdateReq();
 	}
 
 	/*
