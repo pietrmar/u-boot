@@ -29,11 +29,10 @@
  * 				If reset was performed than, u-boot recognize that FAIL flag is set and continues usb recovery
  * 				loads sfupdate from download partition into RAM again
  * 				verifies the checksums and versions and it will find out that MLO, u-boot and u-boot-env are up to date
- * 			FAIL flag is still set so u-boot erase the kernel
- * 			U-boot automatically flashes dts without version check.
+ * 			FAIL flag is still set so u-boot erase the fit parition
  * 			U-boot automatically flashes rootfs without version check.
- * 			U-boot automatically flashes the kernel.
- * 			U-boot boots the kernel.
+ * 			U-boot automatically flashes the fit image.
+ * 			U-boot boots the fit image.
  * 			Userspace after correct boot should clear FAIL flag.
  *
  * 	NETWORK UPDATE:
@@ -52,13 +51,12 @@
  * 				If reset was performed than, u-boot recognize that UPDATE flag is set and continues with network update
  * 				loads sfupdate from download partition into RAM again
  * 				verifies the checksums and versions and it will find out that MLO, u-boot and u-boot-env are up to date
- * 			If rootfs or kernel version changed, kernel is erased
- * 			If dts version changed, dts is erased and flashed
+ * 			If rootfs or fit image version changed, fit partition is erased
  * 			If rootfs version changed, rootfs is erased and flashed
- * 			If rootfs or kernel version changed, kernel is flashed
+ * 			If rootfs or fit image version changed, fit image is flashed
  * 			U-boot clear UPDATE flag
  * 			U-boot set FAIL flag
- * 			U-boot boots the kernel
+ * 			U-boot boots the fit image
  * 			Userspace after correct boot should clear FAIL flag.
  *
  * METHODS:
@@ -67,8 +65,8 @@
  *		update_download_from_usb        - loads sfupdate file from usb and saves it into download partition
  * 		check_bootloaders_need_flashing - check MLO, u-boot, u-boot-env partition in image, set enviroments to signalize that flashing them is needed
  * 		flash_bootloaders_as_needed     - flash MLO, u-boot, u-boot-env partition as needed, decision is based on enviroment set by check_bootloaders_need_flashing
- * 		check_system_need_flashing      - check DTS, rootfs, kernel partition in image, set enviroments to signalize that flashing them is needed
- * 		flash_system_as_needed          - flash DTS, rootfs, kernel partition in image as needed, decision is based on enviroment set by check_system_need_flashing
+ * 		check_system_need_flashing      - rootfs, fit partition in image, set enviroments to signalize that flashing them is needed
+ * 		flash_system_as_needed          - rootfs, fit partition in image as needed, decision is based on enviroment set by check_system_need_flashing
  *		sfu_boot                        - main method
  *
  * VARIABLES:
@@ -89,14 +87,12 @@
  * 		SFU_DECRYPT_MLO_CHNK_SIZE       - size of MLO chunk after decryption, set by call sfu decrypt command
  * 		SFU_DECRYPT_UBOOT_CHNK_SIZE     - size of u-boot chunk after decryption, set by call sfu decrypt command
  * 		SFU_DECRYPT_UBOOTENV_CHNK_SIZE  - size of u-boot chunk after decryption, set by call sfu decrypt command
- * 		SFU_DECRYPT_DTS_CHNK_SIZE       - size dts chunk after decryption, set by call sfu decrypt command
  * 		SFU_DECRYPT_ROOTFS_CHNK_SIZE    - size rootfs chunk after decryption, set by call sfu decrypt command
- * 		SFU_DECRYPT_KERNEL_CHNK_SIZE    - size of kernel chunk after decryption, set by call sfu decrypt command
+ * 		SFU_DECRYPT_FIT_CHNK_SIZE       - size of fit chunk after decryption, set by call sfu decrypt command
  * 		UBOOT_NEEDS_FLASHING            - flag for later u-boot flashing
  * 		UBOOTENV_NEEDS_FLASHING         - flag for later u-boot-env flashing
- * 		DTS_NEEDS_FLASHING              - flag for later dts flashing
  * 		ROOTFS_NEEDS_FLASHING           - flag for later rootfs flashing
- * 		KERNEL_NEEDS_FLASHING           - flag for later kernel flashing
+ * 		FIT_NEEDS_FLASHING              - flag for later fit flashing
  */
 
 #define SUE_FWUPDATE_EXTRA_ENV_SETTINGS \
@@ -121,9 +117,9 @@
     "readuImage=" \
         "if nboot ${fdt_addr} fit; " \
             "then " \
-            "echo \"INFO: kernel partition load successful\"; " \
+            "echo \"INFO: fit partition load successful\"; " \
         "else " \
-            "echo \"ERROR: cannot load kernel image from nand\"; " \
+            "echo \"ERROR: cannot load fit image from nand\"; " \
             "reset; " \
         "fi;\0" \
 \
@@ -135,12 +131,12 @@
         "rootfstype=${nandrootfstype} ${mtdparts} ${optargs}\0" \
     "nand_boot=echo \"Booting from nand ...\"; " \
         "run nandargs; " \
-        "echo \"INFO: loading kernel image into RAM...\"; " \
+        "echo \"INFO: loading fit image into RAM...\"; " \
         "bstate booting; " \
         "run readuImage; " \
-        "echo \"INFO: booting kernel image...\"; " \
+        "echo \"INFO: booting fit image...\"; " \
         "bootm ${fdt_addr}; " \
-        "echo \"INFO: kernel boot failed...\"; " \
+        "echo \"INFO: fit boot failed...\"; " \
         "echo \"INFO: resetting...\"; " \
         "reset;\0" \
     "panicargs=panic=10 mem=127M\0" \
@@ -377,13 +373,13 @@
             "if test ${fit_vers} != ${SFU_CHNK_VERS}; then echo \"INFO: fit_vers(${fit_vers}) not equal SFU_CHNK_VERS(${SFU_CHNK_VERS})\";  fi; " \
             "if fwup fail ||  test -z \\\\'${fit_vers}\\\\' || test ${fit_vers} != ${SFU_CHNK_VERS}; " \
                 "then " \
-                "echo \"INFO: kernel needs flashing...\"; " \
+                "echo \"INFO: fit needs flashing...\"; " \
                 "run handle_encm; " \
                 "if test ${SFU_CHNK_ENCM} = 00000001; " \
                     "then " \
-                    "SFU_DECRYPT_KERNEL_CHNK_SIZE=${SFU_CHNK_SIZE}; " \
+                    "SFU_DECRYPT_FIT_CHNK_SIZE=${SFU_CHNK_SIZE}; " \
                 "fi; " \
-                "KERNEL_NEEDS_FLASHING=yes; " \
+                "FIT_NEEDS_FLASHING=yes; " \
             "fi; " \
         "else " \
             "echo \"INFO: fit not in download partition SFU update image\"; " \
@@ -393,11 +389,11 @@
  \
     "flash_system_as_needed=" \
         "echo \"INFO: Starting flash_system_as_needed...\"; " \
-        "if test ${DTS_NEEDS_FLASHING} = yes || test ${ROOTFS_NEEDS_FLASHING} = yes || test ${KERNEL_NEEDS_FLASHING} = yes; " \
+        "if test ${ROOTFS_NEEDS_FLASHING} = yes || test ${FIT_NEEDS_FLASHING} = yes; " \
             "then " \
             "echo \"INFO: fit partition being erased\"; " \
             "nand erase.part fit; " \
-            "KERNEL_NEEDS_FLASHING=yes; " \
+            "FIT_NEEDS_FLASHING=yes; " \
         "fi; " \
         "if test ${ROOTFS_NEEDS_FLASHING} = yes; " \
             "then " \
@@ -438,7 +434,7 @@
                 "sfu errstate; " \
             "fi; " \
         "fi; " \
-        "if test ${KERNEL_NEEDS_FLASHING} = yes; " \
+        "if test ${FIT_NEEDS_FLASHING} = yes; " \
             "then " \
             "if sfu chnkhdr ${sfu_load_addr} fit; " \
                 "then " \
@@ -446,9 +442,9 @@
                 "bstate dontunplug; " \
                 "if test ${SFU_CHNK_ENCM} = 00000001; " \
                     "then " \
-                    "SFU_CHNK_SIZE=${SFU_DECRYPT_KERNEL_CHNK_SIZE}; " \
+                    "SFU_CHNK_SIZE=${SFU_DECRYPT_FIT_CHNK_SIZE}; " \
                 "fi; " \
-                "echo \"INFO: writing kernel to flash...\"; " \
+                "echo \"INFO: writing fit to flash...\"; " \
                 "if nand write ${SFU_CHNK_DATA} ${SFU_CHNK_DEST} ${SFU_CHNK_SIZE}; " \
                     "then " \
                     "echo \"INFO: nand write successful\"; " \
@@ -463,7 +459,7 @@
                 "sfu errstate; " \
             "fi; " \
         "fi; " \
-        "if test ${DTS_NEEDS_FLASHING} = yes || test ${ROOTFS_NEEDS_FLASHING} = yes || test ${KERNEL_NEEDS_FLASHING} = yes; " \
+        "if test ${ROOTFS_NEEDS_FLASHING} = yes || test ${FIT_NEEDS_FLASHING} = yes; " \
             "then " \
             "echo \"INFO: saving environment...\"; " \
             "saveenv;" \
@@ -605,9 +601,8 @@
                 "then " \
                 "UBOOT_NEEDS_FLASHING=no; " \
                 "UBOOTENV_NEEDS_FLASHING=no; " \
-                "DTS_NEEDS_FLASHING=no; " \
                 "ROOTFS_NEEDS_FLASHING=no; " \
-                "KERNEL_NEEDS_FLASHING=no; " \
+                "FIT_NEEDS_FLASHING=no; " \
                 "UBOOT_RESET=no; " \
                 "run check_bootloaders_need_flashing; " \
                 "run flash_bootloaders_as_needed; " \
