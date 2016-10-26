@@ -146,6 +146,11 @@ int do_bootm(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		/* Do this authentication in boota command */
 		break;
 #endif
+#if defined(CONFIG_FIT)
+	case IMAGE_FORMAT_FIT:
+		/* FIT is verified while extracting kernel/.. from it */
+		break;
+#endif
 	default:
 		printf("Not valid image format for Authentication, Please check\n");
 		return 1;
