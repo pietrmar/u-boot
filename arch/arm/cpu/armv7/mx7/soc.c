@@ -217,9 +217,31 @@ static void set_epdc_qos(void)
 	writel(0xe080, IOMUXC_GPR_BASE_ADDR + 0x0034); /* EPDC AW/AR CACHE ENABLE */
 }
 
+static void init_csu(void)
+{
+#ifdef CONFIG_ARMV7_NONSEC
+	int i;
+	u32 csu = 0x303e0000;
+	/* This is to allow device can be accessed in non-secure world */
+	for (i = 0; i < 64; i ++) {
+		switch (i) {
+		case 15: // restrict CSU access
+		case 28: // restrict TZASC access
+		case 58: // restrict CAAM access
+			*((u32 *)csu + i) = 0x01ff0133;
+			break;
+		default:
+			*((u32 *)csu + i) = 0x01ff01ff;
+		}
+	}
+#endif
+}
+
 int arch_cpu_init(void)
 {
 	init_aips();
+
+	init_csu();
 
 	/* Disable PDE bit of WMCR register */
 	imx_set_wdog_powerdown(false);
@@ -523,3 +545,17 @@ void fastboot_enable_flag(void)
 		ANDROID_FASTBOOT_BOOT);
 }
 #endif /*CONFIG_FSL_FASTBOOT*/
+
+#ifdef CONFIG_ARMV7_TEE
+void smp_kick_all_cpus(void)
+{
+}
+
+void smp_set_core_boot_addr(unsigned long addr, int corenr)
+{
+}
+
+void smp_waitloop(unsigned previous_address)
+{
+}
+#endif

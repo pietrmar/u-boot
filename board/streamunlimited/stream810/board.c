@@ -65,7 +65,11 @@ static const iomux_v3_cfg_t const wifi_pads[] = {
 
 int dram_init(void)
 {
+#ifdef CONFIG_ARMV7_TEE
+	gd->ram_size = PHYS_SDRAM_SIZE - CONFIG_TEE_RAM_SIZE;
+#else
 	gd->ram_size = PHYS_SDRAM_SIZE;
+#endif
 
 	return 0;
 }
