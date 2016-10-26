@@ -42,6 +42,8 @@ DECLARE_GLOBAL_DATA_PTR;
 #define NAND_PAD_CTRL		(PAD_CTL_DSE_3P3V_49OHM | PAD_CTL_SRE_SLOW | PAD_CTL_HYS)
 #define NAND_PAD_READY0_CTRL	(PAD_CTL_DSE_3P3V_49OHM | PAD_CTL_PUS_PU5KOHM)
 
+#define SNVS_HPCOMR		0x04
+
 #ifdef CONFIG_SYS_I2C_MXC
 /* I2C4 */
 struct i2c_pads_info i2c_pad_info4 = {
@@ -291,6 +293,14 @@ int board_init(void)
 
 	/* address of boot parameters */
 	gd->bd->bi_boot_params = PHYS_SDRAM + 0x100;
+
+	/*
+	 * Set "Non-Privileged Software Access Enable" bit
+	 * This is required for normal-world SW to write to SRTC ('hwclock -w' hangs) and GP (sfuflags doesn't work) registers
+	 */
+	reg = readl(SNVS_BASE_ADDR + SNVS_HPCOMR);
+	reg |= (1 << 31);
+	writel(reg, SNVS_BASE_ADDR + SNVS_HPCOMR);
 
 	/*
 	 * Disable SNVS zeroization, otherwise the flags in the SNVS_LPGPR register will not be written
