@@ -102,6 +102,7 @@ int axp152_set_dcdc2(int mvolt);
 int axp152_set_dcdc3(int mvolt);
 int axp152_set_dcdc4(int mvolt);
 int axp152_set_ldo0(enum axp152_ldo0_volts volt, enum axp152_ldo0_curr_limit curr_limit);
+int axp152_disable_ldo0(void);
 int axp152_set_ldo1(int mvolt);
 int axp152_set_ldo2(int mvolt);
 int axp152_set_aldo1(enum axp152_aldo_voltages volt);

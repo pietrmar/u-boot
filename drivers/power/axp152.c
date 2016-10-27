@@ -79,6 +79,20 @@ int axp152_set_ldo0(enum axp152_ldo0_volts volt, enum axp152_ldo0_curr_limit cur
 	return axp152_write(AXP152_LDO0_VOLTAGE, target);
 }
 
+int axp152_disable_ldo0(void)
+{
+	int ret;
+	u8 target;
+
+	ret = axp152_read(AXP152_LDO0_VOLTAGE, &target);
+	if (ret)
+		return ret;
+
+	target &= ~(1 << 7);
+
+	return axp152_write(AXP152_LDO0_VOLTAGE, target);
+}
+
 int axp152_set_ldo1(int mvolt)
 {
 	u8 target = axp152_mvolt_to_target(mvolt, 700, 3500, 100);
