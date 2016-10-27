@@ -337,8 +337,14 @@ int power_init_board(void)
 	i2c_set_bus_num(3);
 
 	axp152_init();
+	/* Disable LDO0 and ALDO2 */
+	axp152_disable_ldo0();
+	axp152_set_power_output(0xFB);
+	mdelay(20);
+
 	axp152_set_ldo0(AXP152_LDO0_3V3, AXP152_LDO0_CURR_1500MA);
 	axp152_set_aldo2(AXP152_ALDO_3V3);
+
 	axp152_set_dcdc3(1350);
 	axp152_set_power_output(0xFF);
 
