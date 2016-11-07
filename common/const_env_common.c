@@ -422,6 +422,25 @@ static int const_print(char *name)
 	return 0;
 }
 
+static int const_toenv(char *name)
+{
+	char *res = NULL;
+	size_t len;
+
+	if (name) {		/* print a single name */
+		ENTRY e, *ep;
+
+		e.key = name;
+		e.data = NULL;
+		hsearch_r(e, FIND, &ep, &const_htab, 0);
+		if (ep == NULL)
+			return 0;
+		setenv(ep->key, ep->data);
+	}
+
+	return 1;
+}
+
 /*
  * Set a new constants variable,
  * or replace or delete an existing one.
@@ -872,6 +891,22 @@ int do_const(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		return saveconst();
 	}
 
+	/*
+	 * Syntax is:
+	 *   0     1     2
+	 *   const toenv name
+	 */
+	if (strcmp(cmd, "toenv") == 0) {
+		for (i = 2; i < argc; ++i) {
+			int rc = const_toenv(argv[i]);
+			if (!rc) {
+				printf("## Error: \"%s\" not defined in Constants\n", argv[i]);
+				++rcode;
+			}
+		}
+		return rcode;
+        }
+
 usage:
 	return cmd_usage(cmdtp);
 }
@@ -884,6 +919,7 @@ U_BOOT_CMD(
 	"const print          - print values of all constants variables\n"
 	"const print name     - print value of constants variable 'name'\n"
 	"const reload         - reloads constants variables from FLASH\n"
-	"const save           - save constants variables to persistent storage"
+	"const save           - save constants variables to persistent storage\n"
+	"const toenv name     - copies the constatnt to the same enviroment variable"
 );
 
