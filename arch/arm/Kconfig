@@ -567,6 +567,7 @@ config TARGET_MX7DSABRESD
 config TARGET_STREAM810
 	bool "Support stream810"
 	select CPU_V7
+	select CPU_V7_HAS_NONSEC
 
 config TARGET_MX6UL_14X14_EVK
         bool "Support mx6ul_14x14_evk"
