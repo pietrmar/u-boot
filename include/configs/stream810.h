@@ -144,7 +144,7 @@
 		"rdinit=/linuxrc\0" \
 	"initrd_addr=0x83800000\0" \
 	"initrd_high=0xffffffff\0" \
-	"bootcmd_mfg=fwup mtdparts; saveenv; run mfg_args; bootm ${loadaddr} ${initrd_addr} ${fdt_addr};\0"
+	"bootcmd_mfg=fwup mtdparts; run mfg_args; setenv loadaddr ${fdt_addr}; bootm;\0"
 
 #define CONFIG_EXTRA_ENV_SETTINGS \
 		CONFIG_MFG_ENV_SETTINGS \
