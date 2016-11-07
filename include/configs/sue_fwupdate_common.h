@@ -103,8 +103,7 @@
     "optargs=mwifiex.driver_mode=0x3\0" \
     "sfu_load_addr=0x80800000\0" \
     "wdtargs=imx2_wdt.timeout=120 imx2_wdt.early_disable=0\0" \
-    "bootargs_defaults=setenv bootargs " \
-    "console=${console}\0" \
+    "bootargs_defaults=setenv bootargs console=${console}\0" \
     "eraseSettings=" \
         "if nand erase.part settings; " \
             "then " \
@@ -126,9 +125,11 @@
 \
     "nandroot=ubi0:stream800-rootfs rw\0" \
     "nandrootfstype=ubifs rootwait=1\0" \
-    "nandargs=setenv bootargs console=${console} " \
+    "nandargs=const toenv eth_int_addr; " \
+        "setenv bootargs console=${console} " \
         "ubi.mtd=5 root=${nandroot} noinitrd ${wdtargs} " \
-        "rootfstype=${nandrootfstype} ${mtdparts} ${optargs}\0" \
+        "rootfstype=${nandrootfstype} fec.macaddr=${eth_int_addr} " \
+        "${mtdparts} ${optargs}\0" \
     "nand_boot=echo \"Booting from nand ...\"; " \
         "run nandargs; " \
         "echo \"INFO: loading fit image into RAM...\"; " \
