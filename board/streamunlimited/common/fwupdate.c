@@ -268,7 +268,9 @@ static int do_fwup(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 	}
 
 	if (strcmp(cmd, "mtdparts") == 0) {
-		sue_setup_mtdparts();
+		if (sue_setup_mtdparts() != 0)
+			return 1;
+
 		return 0;
 	}
 
