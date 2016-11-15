@@ -61,7 +61,7 @@ struct module_map_entry {
 };
 
 static const struct module_map_entry module_map[] = {
-	{ SUE_MODULE_S810_BASIC,		1, 0x11, 0x0E },
+	{ SUE_MODULE_S810_BASIC,		1, 0x11, 0x0A },
 	{ SUE_MODULE_S810_EXTENDED,		1, 0x11, 0x0F },
 	{ SUE_MODULE_S810_EXTENDED_PLUS,	1, 0x11, 0x0C },
 };
