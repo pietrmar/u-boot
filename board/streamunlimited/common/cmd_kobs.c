@@ -218,6 +218,11 @@ static int do_kobs(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		printf("kobs: second image will be at 0x%08X (page %u) size %u pages\n", img2_start, img2_start / npagesize, img_size_pages);
 		printf("kobs: maximum image size is %u B\n", max_img_size);
 
+		if (npagesize != 2048 && npagesize != 4096) {
+			printf("kobs: ERROR: NAND page size is not supported\n");
+			return -EINVAL;
+		}
+
 		if (size > max_img_size) {
 			printf("kobs: ERROR: image is too big (%u B)\n", size);
 			return -ENOSPC;
@@ -248,8 +253,16 @@ static int do_kobs(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		fcb.FCB_Block.m_u32EccBlockNSize		= 512;
 		fcb.FCB_Block.m_u32EccBlock0EccType		= 4;
 		fcb.FCB_Block.m_u32MetadataBytes		= 10;
-		fcb.FCB_Block.m_u32NumEccBlocksPerPage		= 7;
-		fcb.FCB_Block.m_u32BadBlockMarkerByte		= 3995;
+
+		/* Yes, this is ugly. */
+		if (npagesize == 4096) {
+			fcb.FCB_Block.m_u32NumEccBlocksPerPage		= 7;
+			fcb.FCB_Block.m_u32BadBlockMarkerByte		= 3995;
+		} else if (npagesize == 2048) {
+			fcb.FCB_Block.m_u32NumEccBlocksPerPage		= 3;
+			fcb.FCB_Block.m_u32BadBlockMarkerByte		= 1999;
+		}
+
 		fcb.FCB_Block.m_u32BadBlockMarkerStartBit	= 0;
 		fcb.FCB_Block.m_u32BBMarkerPhysicalOffset	= npagesize;
 		fcb.FCB_Block.m_u32BCHType			= 0;
