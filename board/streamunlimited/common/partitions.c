@@ -28,24 +28,29 @@ const struct sue_partition sue_part_512M[] = {
 	{ 0x15600000, 0x0AA00000, "download" },
 };
 
-static int create_mtd_part(char *buf, const struct sue_partition *part)
+static int create_mtd_part(char *buf, size_t buflen, const struct sue_partition *part)
 {
 	int ret;
 
 	if (part->size < SZ_1M) {
-		ret = sprintf(buf, "%dk(%s)", (part->size / SZ_1K), part->name);
+		ret = snprintf(buf, buflen, "%dk(%s)", (part->size / SZ_1K), part->name);
 	} else {
-		ret = sprintf(buf, "%dM(%s)", (part->size / SZ_1M), part->name);
+		ret = snprintf(buf, buflen, "%dM(%s)", (part->size / SZ_1M), part->name);
 	}
 
-	return ret;
+	/* String was truncated */
+	if (ret >= buflen) {
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
 /*
- * Detect flash size and setup mtdparts variable
- * accordingly from defined partition table
+ * Detect flash size and setup `mtdparts`, `mtd_pagesize` and `mtd_download_size`
+ * env variables accordingly.
  *
- * This was 90% taken from stream800.
+ * Return 0 on success and a negative error code on failure;
  */
 int sue_setup_mtdparts(void)
 {
@@ -55,6 +60,7 @@ int sue_setup_mtdparts(void)
 	struct mtd_info *mtd;
 	int part_size, ret = 0;
 	int i, j;
+	char buf[30];
 
 	mtd = get_mtd_device_nm("nand0");
 
@@ -94,8 +100,13 @@ int sue_setup_mtdparts(void)
 	strcpy(mtdparts, mtdparts_prefix);
 
 	for (i = 0; i < part_size; i++) {
-		char buf[30];
-		create_mtd_part(buf, &part[i]);
+		ret = create_mtd_part(buf, sizeof(buf), &part[i]);
+
+		if (ret) {
+			printf("Could not create partition entry\n");
+			return ret;
+		}
+
 		if (i != (part_size - 1)) {
 			int len = strlen(buf);
 			buf[len] = ',';
@@ -108,14 +119,16 @@ int sue_setup_mtdparts(void)
 
 	mtdparts[j] = '\0';
 	printf("Setting mtdparts: %s\n", mtdparts);
-
 	setenv("mtdparts", mtdparts);
+
+	printf("Setting mtd_pagesize: %u\n", mtd->writesize);
+	snprintf(buf, sizeof(buf), "%u", mtd->writesize);
+	setenv("mtd_pagesize", buf);
 
 	/* Find and set `mtd_download_size` according to the size of the download partition, in kiB */
 	for (i = 0; i < part_size; i++) {
 		if (!strcmp(part[i].name, "download")) {
-			char buf[30];
-			sprintf(buf, "%u", part[i].size / SZ_1K);
+			snprintf(buf, sizeof(buf), "%u", part[i].size / SZ_1K);
 			setenv("mtd_download_size", buf);
 			break;
 		}
