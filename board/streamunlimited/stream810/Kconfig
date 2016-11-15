@@ -13,3 +13,19 @@ config SYS_CONFIG_NAME
 	default "stream810"
 
 endif
+
+if TARGET_STREAM810_BASIC
+
+config SYS_BOARD
+	default "stream810"
+
+config SYS_VENDOR
+	default "streamunlimited"
+
+config SYS_SOC
+	default "mx7"
+
+config SYS_CONFIG_NAME
+	default "stream810_basic"
+
+endif
