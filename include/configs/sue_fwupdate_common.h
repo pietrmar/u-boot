@@ -404,7 +404,7 @@
                 "bstate dontunplug; " \
                 "echo \"INFO: erasing rootfs partition\"; " \
                 "nand erase.part rootfs; " \
-                "if ubi part rootfs 4096; " \
+                "if ubi part rootfs ${mtd_pagesize}; " \
                     "then " \
                     "echo \"INFO: rootfs is a valid ubi partition\"; " \
                 "fi; " \
@@ -478,7 +478,7 @@
                 "echo \"INFO: bootcount(${bootcount}) equals bootlimit(${bootlimit})\"; " \
                 "echo \"INFO: erasing settings partition\"; " \
                 "run eraseSettings; " \
-                "if ubi part settings 4096; " \
+                "if ubi part settings ${mtd_pagesize}; " \
                     "then " \
                     "echo \"INFO: settings is a valid ubi partition\"; " \
                     "echo \"INFO: creating volume settings...\"; " \
