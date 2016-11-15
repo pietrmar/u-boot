@@ -362,7 +362,9 @@ int board_late_init(void)
 		printf("ERROR: fwupdate_init() call failed!\n");
 	}
 
-	sue_setup_mtdparts();
+	if (sue_setup_mtdparts() < 0) {
+		printf("ERROR: sue_setup_mtdparts() call failed!\n");
+	}
 
 	imx_iomux_v3_setup_multiple_pads(wdog_pads, ARRAY_SIZE(wdog_pads));
 	set_wdog_reset((struct wdog_regs *)WDOG1_BASE_ADDR);
