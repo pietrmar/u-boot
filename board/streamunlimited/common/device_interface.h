@@ -31,6 +31,13 @@ struct sue_device_info {
 	u8 carrier_version;
 
 	const struct sue_carrier_ops *carrier_ops;
+
+	/*
+	 * If this is set to a value other than -1, the board.c file
+	 * will patch the devicetree before booting the kernel. The
+	 * patching will set the phy address of the fec2 MAC accordingly.
+	 */
+	int fec2_phy_addr;
 };
 
 struct sue_carrier_ops {

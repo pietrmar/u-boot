@@ -149,15 +149,45 @@ static void setup_iomux_fec(void)
 	imx_iomux_v3_setup_multiple_pads(fec2_pads_s810, ARRAY_SIZE(fec2_pads_s810));
 }
 
+int ft_board_setup(void *blob, bd_t *bd)
+{
+	if (current_device.fec2_phy_addr != -1) {
+		u32 new_phy_addr = current_device.fec2_phy_addr;
+		int node, ret;
+
+		printf("Patching fec2 PHY address in the device tree to %d\n", new_phy_addr);
+		node = fdt_path_offset(blob, "/soc/aips-bus@30800000/ethernet@30bf0000/mdio/ethernet-phy@0");
+		if (node < 0) {
+			printf("Could not find the ethernet-phy node\n");
+			return node;
+		}
+
+		ret = fdt_setprop_u32(blob, node, "reg", new_phy_addr);
+		if (ret < 0) {
+			printf("Could not set reg property of ethernet-phy node\n");
+			return ret;
+		}
+	}
+	return 0;
+}
+
 int board_eth_init(bd_t *bis)
 {
-	int ret;
+	int i;
+	int ret = 0;
 
 	setup_iomux_fec();
 
-	ret = fecmxc_initialize_multi(bis, CONFIG_FEC_ENET_DEV, CONFIG_FEC_MXC_PHYADDR, IMX_FEC_BASE);
-	if (ret)
-		printf("%s: fecmxc_initialize_multi failed\n", __func__);
+	/* Find the first phy on the mdio bus and assume it's connected to the FEC2 */
+	for (i = 0; i < 8; i++) {
+		ret = fecmxc_initialize_multi(bis, CONFIG_FEC_ENET_DEV, i, IMX_FEC_BASE);
+
+		if (ret == 0) {
+			printf("found PHY on address %d\n", i);
+			current_device.fec2_phy_addr = i;
+			break;
+		}
+	}
 
 	return ret;
 }

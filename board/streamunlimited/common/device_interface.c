@@ -149,6 +149,7 @@ static int fill_device_info(struct sue_device_info *device, u16 module_msb_adc_v
 	}
 
 	device->carrier_ops = NULL;
+	device->fec2_phy_addr = -1;
 
 	return 0;
 }
