@@ -46,11 +46,25 @@ static const struct adc_map_entry adc_map[] = {
 	{ 0x1E, 0x0F76, 0x0FFF },
 };
 
+/*
+ * These names are more human friendly and can be used for printing.
+ */
 static const char *module_names[] = {
 	"unknown",
 	"stream810 basic",
 	"stream810 extended",
 	"stream810 extended plus",
+};
+
+/*
+ * These names can be used where no spaces or other special charactar are allowed,
+ * e.g. for fit configurations.
+ */
+static const char *canonical_module_names[] = {
+	"unknown",
+	"stream810b",
+	"stream810x",
+	"stream810h"
 };
 
 struct module_map_entry {
@@ -70,6 +84,12 @@ static const char *carrier_names[] = {
 	"unknown",
 	"demo client",
 	"highend demo client",
+};
+
+static const char *canonical_carrier_names[] = {
+	"unknown",
+	"democlient",
+	"hedemoclient",
 };
 
 extern struct sue_carrier_ops demo_client_ops;
@@ -181,6 +201,16 @@ int sue_print_device_info(const struct sue_device_info *device)
 {
 	printf("Module: '%s (L%d)', Carrier board: '%s (L%d)'\n", module_names[device->module], device->module_version, carrier_names[device->carrier], device->carrier_version);
 	return 0;
+}
+
+const char *sue_device_get_canonical_module_name(const struct sue_device_info *device)
+{
+	return canonical_module_names[device->module];
+}
+
+const char *sue_device_get_canonical_carrier_name(const struct sue_device_info *device)
+{
+	return canonical_carrier_names[device->carrier];
 }
 
 int sue_carrier_ops_init(struct sue_device_info *device)

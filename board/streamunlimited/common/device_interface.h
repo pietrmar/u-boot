@@ -54,4 +54,7 @@ int sue_device_detect(struct sue_device_info *device);
 int sue_carrier_ops_init(struct sue_device_info *device);
 int sue_print_device_info(const struct sue_device_info *device);
 
+const char *sue_device_get_canonical_module_name(const struct sue_device_info *device);
+const char *sue_device_get_canonical_carrier_name(const struct sue_device_info *device);
+
 #endif /* __DEVICE_INTERFACE_H__ */
