@@ -126,4 +126,6 @@ typedef void hapi_clock_init_t(void);
 #define HAB_CID_UBOOT 1 /**< UBOOT Caller ID*/
 /* ----------- end of HAB API updates ------------*/
 
+bool is_hab_enabled(void);
+
 #endif
