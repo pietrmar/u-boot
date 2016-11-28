@@ -110,6 +110,9 @@ struct carrier_map_entry {
 /*
  * NOTE: currently the demo client has the same resistors for all revisions,
  * so we just set it to zero here.
+ *
+ * NOTE: on the stream810 with the basic interface the LSB will always read
+ * 0x01, so we always assume it's a normal demo client.
  */
 static const struct carrier_map_entry carrier_map[] = {
 	{ SUE_CARRIER_DEMO_CLIENT,		0, 0x1E, 0x01 },
