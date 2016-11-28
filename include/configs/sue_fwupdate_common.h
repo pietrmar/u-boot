@@ -136,7 +136,14 @@
         "bstate booting; " \
         "run readuImage; " \
         "echo \"INFO: booting fit image...\"; " \
-        "bootm ${fdt_addr}; " \
+        "if env exists fit_config; " \
+           "then " \
+           "echo \"INFO: will boot fit config ${fit_config}@1\"; " \
+           "bootm ${fdt_addr}#${fit_config}@1; " \
+        "else " \
+           "echo \"INFO: will try to boot the default fit config\"; " \
+           "bootm ${fdt_addr}; " \
+        "fi; " \
         "echo \"INFO: fit boot failed...\"; " \
         "echo \"INFO: resetting...\"; " \
         "reset;\0" \
