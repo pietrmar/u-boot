@@ -47,6 +47,8 @@
 #include <u-boot/md5.h>
 #include <u-boot/sha256.h>
 
+#include <asm/arch/hab.h>
+
 extern uint32_t crc32(uint32_t crc, const uint8_t* baseaddr, uint32_t length);
 extern void md5(unsigned char *input, int len, unsigned char output[16]);
 
@@ -1166,10 +1168,27 @@ static int check_sfu_signature(uint32_t addr, uint32_t *sfu_addr, int verify)
 		if (verify) {
 			puts("Checking signature:");
 			if (!fit_image_verify(fit_hdr, noffset)) {
-				puts ("Bad Data Hash\n");
-				return 1;
+
+				/*
+				 * Only fail using sfupdate with incorrect signature if the board is in 'secure'
+				 * state (ie, locked secure fuses/..)
+				 */
+
+				/*
+				 * NOTE: This is imx7 specific: is_hab_enabled() function just checks if the
+				 * SEC_CONFIG[1] fuse is set.
+				 */
+				if (is_hab_enabled()) {
+					puts("ERROR: sfu signature cannot be verified\n");
+					return 1;
+				}
+				else {
+					puts("WARN: sfu signature cannot be verified - ignoring failure since not secured\n");
+				}
 			}
 			puts("\n");
+		} else {
+			puts("INFO: not checking sfu signature\n");
 		}
 
 		/* get script subimage data address and length */
