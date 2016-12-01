@@ -12,6 +12,7 @@ enum sue_carrier {
 	SUE_CARRIER_UNKNOWN,
 	SUE_CARRIER_DEMO_CLIENT,
 	SUE_CARRIER_HE_DEMO_CLIENT,
+	SUE_CARRIER_S810_REF_KIT,
 };
 
 enum sue_reset_cause {

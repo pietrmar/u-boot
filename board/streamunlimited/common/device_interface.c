@@ -84,12 +84,14 @@ static const char *carrier_names[] = {
 	"unknown",
 	"demo client",
 	"highend demo client",
+	"s810 reference kit",
 };
 
 static const char *canonical_carrier_names[] = {
 	"unknown",
 	"democlient",
 	"hedemoclient",
+	"s810refkit",
 };
 
 extern struct sue_carrier_ops demo_client_ops;
@@ -117,6 +119,7 @@ struct carrier_map_entry {
 static const struct carrier_map_entry carrier_map[] = {
 	{ SUE_CARRIER_DEMO_CLIENT,		0, 0x1E, 0x01 },
 	{ SUE_CARRIER_HE_DEMO_CLIENT,		0, 0x1E, 0x1E },
+	{ SUE_CARRIER_S810_REF_KIT,		0, 0x15, 0x01 },
 };
 
 static int get_adc_code(u16 adc_value)
