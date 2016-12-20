@@ -140,6 +140,8 @@
            "then " \
            "echo \"INFO: will boot fit config ${fit_config}@1\"; " \
            "bootm ${fdt_addr}#${fit_config}@1; " \
+           "echo \"INFO: will try to boot the default fit config\"; " \
+           "bootm ${fdt_addr}; " \
         "else " \
            "echo \"INFO: will try to boot the default fit config\"; " \
            "bootm ${fdt_addr}; " \
