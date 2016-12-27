@@ -100,6 +100,7 @@ static const struct sue_carrier_ops *sue_carrier_ops[] = {
 	NULL,				/* unknown */
 	&demo_client_ops,		/* demo client */
 	&demo_client_ops,		/* highend demo client, it is also handled by the demo client board file */
+	&demo_client_ops,		/* ref kit, still handled by demo client board file */
 };
 
 struct carrier_map_entry {
