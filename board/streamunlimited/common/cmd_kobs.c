@@ -298,10 +298,8 @@ static int do_kobs(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		for (i = 0; i < cfg_copies; i++) {
 			struct mxs_bch_regs *bch_regs = (struct mxs_bch_regs *)MXS_BCH_BASE;
-			u32 l;
 			u32 old_flash_layout0, new_flash_layout0;
 			u32 old_flash_layout1, new_flash_layout1;
-			size_t write_len;
 
 			nand_erase_options_t opts;
 			mtd_oob_ops_t ops;
