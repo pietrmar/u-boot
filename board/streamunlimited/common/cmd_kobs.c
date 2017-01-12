@@ -323,15 +323,6 @@ static int do_kobs(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			ops.mode = MTD_OPS_RAW;
 			ops.flags = MTD_OOB_FLAG_RANDOMIZE;
 
-			/*
-			 * This does not work, because we randomize the whole data, and when we access
-			 * it without the randomizer enabled we will not get 0xFF, as a workaround
-			 * we could read back the page randomized change the BBM and the write the
-			 * page back without the randomizer.
-			 */
-			*((u8 *)buffer + npagesize) = 0xFF;
-
-
 			/* Since we will write using the randomizer, ecc has to be enabled,
 			 * but we set the ECC layouts, etc. to 0.
 			 */
@@ -347,10 +338,28 @@ static int do_kobs(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 			mtd_write_oob(&nand_info[ndev], i * nblocksize, &ops);
 
-
 			/* Reset the old flash layout */
 			writel(old_flash_layout0, &bch_regs->hw_bch_flash0layout0);
 			writel(old_flash_layout1, &bch_regs->hw_bch_flash0layout1);
+
+
+			/* This is a hack which does the following:
+			 * 	- after we have written our block with the HW randomizer the bad block marker will be wrongly not set to 0xFF
+			 * 	- we read back the whole page including ecc data and the bad block marker
+			 * 	- we set the bad block marker back to 0xFF
+			 * 	- we erase the page
+			 * 	- and we write back the previous randomized page except for the bad block marker which is now 0xFF
+			 *
+			 * There is currently no better way to do this, if we don't do this, we will get issues with userspace tools like `kobs-ng`
+			 * in Linux which will not be able to write a new image to the beginning of the NAND.
+			 */
+			printf("Fixing up the BBM\n");
+			ops.flags = 0;
+			mtd_read_oob(&nand_info[ndev], i * nblocksize, &ops);
+			*((u8 *)buffer + npagesize) = 0xFF;
+
+			nand_erase_opts(&nand_info[ndev], &opts);
+			mtd_write_oob(&nand_info[ndev], i * nblocksize, &ops);
 		}
 
 		free(buffer);
