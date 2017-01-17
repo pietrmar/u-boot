@@ -151,6 +151,7 @@ static void setup_iomux_fec(void)
 
 int ft_board_setup(void *blob, bd_t *bd)
 {
+	/* Patch fec2 phy address to first found phy */
 	if (current_device.fec2_phy_addr != -1) {
 		u32 new_phy_addr = current_device.fec2_phy_addr;
 		int node, ret;
