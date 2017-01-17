@@ -80,6 +80,12 @@ int sue_setup_mtdparts(void)
 			part_size = ARRAY_SIZE(sue_part_512M);
 			break;
 
+		/* Currently use 512M parition layout for 2GiB flash */
+		case SZ_2G:
+			part = sue_part_512M;
+			part_size = ARRAY_SIZE(sue_part_512M);
+			break;
+
 		default:
 			printf("Unknown NAND size of %llu MiB\n", (mtd->size / SZ_1M));
 			part = NULL;
