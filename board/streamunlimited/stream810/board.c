@@ -21,6 +21,7 @@
 #include <asm/imx-common/mxc_i2c.h>
 #include <axp152.h>
 #include <asm/arch/imx-regs.h>
+#include <const_env_common.h>
 
 #include "../common/fwupdate.h"
 #include "../common/partitions.h"
@@ -169,6 +170,56 @@ int ft_board_setup(void *blob, bd_t *bd)
 			return ret;
 		}
 	}
+
+	/*
+	 * Enable additional operating points if desired.
+	 *
+	 * This allows us to specify `additional-operating-points` in the devicetree,
+	 * which will be enabled when the `enable_additional_operating_points` variable
+	 * in the const partition is set.
+	 *
+	 * We use this mechanism to allow customers to enable or disable 1.2GHz
+	 * operation of the CPU.
+	 *
+	 * Essentially we are just taking the data from the `additional-operating-points`
+	 * property and append it to the current `operating-points` before booting.
+	 *
+	 * NOTE: since in the current implementation this depends on `getconst_yesno()`
+	 * we can only use it if CONFIG_CONST_ENV_COMMON is enabled.
+	 */
+#ifdef CONFIG_CONST_ENV_COMMON
+	if (getconst_yesno("enable_additional_operating_points") == 1) {
+		int ret, node, addproplen;
+		const void *addprop;
+
+		printf("Patching devicetree to enable additional operating points\n");
+		node = fdt_path_offset(blob, "/cpus/cpu@0");
+		if (node < 0) {
+			printf("Could not find the cpu node\n");
+			return node;
+		}
+
+		addprop = fdt_getprop(blob, node, "additional-operating-points", &addproplen);
+		if (addproplen < 0) {
+			printf("Could not get `additional-operating-points` for cpu@0\n");
+		} else {
+			u8 buffer[32];
+
+			if (addproplen > 32) {
+				printf("Too many additional operating points\n");
+				return -ENOMEM;
+			}
+			memcpy(buffer, addprop, addproplen);
+
+			ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
+			if (ret < 0) {
+				printf("Failed to append `additional-operating-points`\n");
+				return ret;
+			}
+		}
+	}
+#endif
+
 	return 0;
 }
 
