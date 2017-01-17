@@ -34,6 +34,7 @@ extern int const_init(void);
 extern void const_relocate(void);
 extern int get_const_id (void);
 extern char *getconst (char *name);
+extern int getconst_yesno(char *var);
 extern int setconst (char *varname, char *varvalue);
 extern int readconst(size_t offset, u_char * buf);
 

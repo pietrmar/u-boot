@@ -587,6 +587,16 @@ char *getconst (char *name)
 	return NULL;
 }
 
+int getconst_yesno(char *var)
+{
+	char *s = getconst(var);
+
+	if (s == NULL)
+		return -1;
+	return (*s == '1' || *s == 'y' || *s == 'Y' || *s == 't' || *s == 'T') ?
+		1 : 0;
+}
+
 /*
  * The legacy NAND code saved the constants in the first NAND device i.e.,
  * nand_dev_desc + 0. This is also the behaviour using the new NAND code.
