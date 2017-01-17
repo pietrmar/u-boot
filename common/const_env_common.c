@@ -424,9 +424,6 @@ static int const_print(char *name)
 
 static int const_toenv(char *name)
 {
-	char *res = NULL;
-	size_t len;
-
 	if (name) {		/* print a single name */
 		ENTRY e, *ep;
 
