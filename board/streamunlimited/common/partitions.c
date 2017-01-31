@@ -12,20 +12,18 @@ const struct sue_partition sue_part_256M[] = {
 	{ 0x00000000, 0x00800000, "u-boot" },
 	{ 0x00800000, 0x00080000, "u-boot-env" },
 	{ 0x00880000, 0x00080000, "constants" },
-	{ 0x00900000, 0x00800000, "settings" },
-	{ 0x01100000, 0x00C00000, "fit" },
-	{ 0x01D00000, 0x07300000, "rootfs" },
-	{ 0x09000000, 0x07000000, "download" },
+	{ 0x00900000, 0x02000000, "swufit" },
+	{ 0x02900000, 0x00C00000, "fit" },
+	{ 0x03500000, 0x0CB00000, "data" },
 };
 
 const struct sue_partition sue_part_512M[] = {
 	{ 0x00000000, 0x00800000, "u-boot" },
 	{ 0x00800000, 0x00080000, "u-boot-env" },
 	{ 0x00880000, 0x00080000, "constants" },
-	{ 0x00900000, 0x08000000, "settings" },
-	{ 0x08900000, 0x00C00000, "fit" },
-	{ 0x09500000, 0x0C100000, "rootfs" },
-	{ 0x15600000, 0x0AA00000, "download" },
+	{ 0x00900000, 0x02000000, "swufit" },
+	{ 0x02900000, 0x00C00000, "fit" },
+	{ 0x03500000, 0x1CB00000, "data" },
 };
 
 static int create_mtd_part(char *buf, size_t buflen, const struct sue_partition *part)

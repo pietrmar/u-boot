@@ -8,6 +8,7 @@
 #include <asm/arch/imx-regs.h>
 #include <asm/arch/mx7-pins.h>
 #include <asm/arch/sys_proto.h>
+#include <asm/arch/hab.h>
 #include <asm/gpio.h>
 #include <asm/imx-common/iomux-v3.h>
 #include <asm/imx-common/boot_mode.h>
@@ -463,6 +464,11 @@ int board_late_init(void)
 	}
 	printf("Setting fit_config: %s\n", buffer);
 	setenv("fit_config", buffer);
+
+	// pass board 'secure' state (ie, locked secure fuses/..) to env
+	snprintf(buffer, sizeof(buffer), "%d", is_hab_enabled() ? 1 : 0);
+	printf("Setting secure_board: %s\n", buffer);
+	setenv("secure_board", buffer);
 
 	sue_carrier_late_init(&current_device);
 
