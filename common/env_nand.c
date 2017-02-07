@@ -22,6 +22,7 @@
 #include <nand.h>
 #include <search.h>
 #include <errno.h>
+#include <asm/arch/hab.h>
 
 #if defined(CONFIG_CMD_SAVEENV) && defined(CONFIG_CMD_NAND)
 #define CMD_SAVEENV
@@ -64,6 +65,13 @@ DECLARE_GLOBAL_DATA_PTR;
  */
 int env_init(void)
 {
+	// if board is locked, use default environment
+	if (is_hab_enabled()) {
+		gd->env_addr	= (ulong)&default_environment[0];
+		gd->env_valid	= 1;
+		return 0;
+	}
+
 #if defined(ENV_IS_EMBEDDED) || defined(CONFIG_NAND_ENV_DST)
 	int crc1_ok = 0, crc2_ok = 0;
 	env_t *tmp_env1;
@@ -179,6 +187,12 @@ static unsigned char env_flags;
 
 int saveenv(void)
 {
+	// if board is locked, disable saving environment
+	if (is_hab_enabled()) {
+		puts("Board is locked, not saving environment\n");
+		return 0;
+	}
+
 	int	ret = 0;
 	ALLOC_CACHE_ALIGN_BUFFER(env_t, env_new, 1);
 	int	env_idx = 0;
@@ -302,6 +316,12 @@ int get_nand_env_oob(nand_info_t *nand, unsigned long *result)
 #ifdef CONFIG_ENV_OFFSET_REDUND
 void env_relocate_spec(void)
 {
+	// if board is locked, use default environment
+	if (is_hab_enabled()) {
+		set_default_env("Board is locked, using default environment\n");
+		return;
+	}
+
 #if !defined(ENV_IS_EMBEDDED)
 	int read1_fail = 0, read2_fail = 0;
 	int crc1_ok = 0, crc2_ok = 0;
@@ -374,6 +394,12 @@ done:
  */
 void env_relocate_spec(void)
 {
+	// if board is locked, use default environment
+	if (is_hab_enabled()) {
+		set_default_env("Board is locked, using default environment\n");
+		return;
+	}
+
 #if !defined(ENV_IS_EMBEDDED)
 	int ret;
 	ALLOC_CACHE_ALIGN_BUFFER(char, buf, CONFIG_ENV_SIZE);
