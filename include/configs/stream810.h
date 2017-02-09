@@ -67,6 +67,9 @@
 #define CONFIG_CONS_INDEX		1
 #define CONFIG_BAUDRATE			115200
 
+/* enable 'nulldev' input device */
+#define CONFIG_SYS_DEVICE_NULLDEV
+
 #define CONFIG_CMD_FUSE
 #define CONFIG_MXC_OCOTP
 
