@@ -266,15 +266,18 @@ static int parse_aes_key(char *key)
  */
 void fw_print_default_env(void)
 {
-
 	const char *p = default_environment;
+	int size = sizeof(default_environment);
 	int i = 0;
 
 	printf("env part size: %d\n", CONFIG_ENV_SIZE);
 
-	if (use_constants_instead_of_env == 1)
+	if (use_constants_instead_of_env == 1) {
 		p = default_constants;
-	while (i < sizeof(default_environment)) {
+		size = sizeof(default_constants);
+	}
+
+	while (i < size) {
 		int ret = printf("%s\n", p);
 		if (ret < 0) {
 			fprintf(stderr, "Failed to print default environment variables.\n");

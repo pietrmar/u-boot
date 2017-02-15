@@ -145,11 +145,24 @@ int main(int argc, char *argv[])
 		if (print_default_env != 0) {
 			fw_print_default_env();
 		} else {
+			/* !!!! Quick and dirty hack
+			 * default environment changed to default constants
+			 * Expects that env is empty
+			 */
+			use_constants_instead_of_env = 1;
+
 			if (fw_printenv(argc, argv) != 0)
 				retval = EXIT_FAILURE;
 		}
 	} else if (strcmp(cmdname, CMD_SETENV) == 0) {
 		config_file = CONFIG_ENV_FILE;
+
+		/* !!!! Quick and dirty hack
+		 * default environment changed to default constants
+		 * Expects that env is empty
+		 */
+		use_constants_instead_of_env = 1;
+
 		if (!script_file) {
 			if (fw_setenv(argc, argv) != 0)
 				retval = EXIT_FAILURE;
