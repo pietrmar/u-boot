@@ -1,6 +1,8 @@
 #ifndef __DEVICE_INTERFACE_H__
 #define __DEVICE_INTERFACE_H__
 
+#define SUE_CARRIER_FLAGS_HAS_DAUGHTER		(1 << 0)	/* indicates that the carrier LSB is a configuration for a daughter board */
+
 enum sue_module {
 	SUE_MODULE_UNKNOWN,
 	SUE_MODULE_S810_BASIC,
@@ -13,6 +15,14 @@ enum sue_carrier {
 	SUE_CARRIER_DEMO_CLIENT,
 	SUE_CARRIER_HE_DEMO_CLIENT,
 	SUE_CARRIER_S810_REF_KIT,
+	SUE_CARRIER_STREAMKIT_PRIME,
+};
+
+enum sue_daughter {
+	SUE_DAUGHTER_UNKNOWN,
+	SUE_DAUGHTER_EMPTY,
+	SUE_DAUGHTER_HE,
+	SUE_DAUGHTER_VOICE,
 };
 
 enum sue_reset_cause {
@@ -25,11 +35,19 @@ enum sue_reset_cause {
 struct sue_device_info {
 	enum sue_reset_cause reset_cause;
 
+	u16 module_msb_adc_value, module_lsb_adc_value;
+	int module_msb_code, module_lsb_code;
 	enum sue_module module;
 	u8 module_version;
 
+	u16 carrier_msb_adc_value, carrier_lsb_adc_value;
+	int carrier_msb_code, carrier_lsb_code;
 	enum sue_carrier carrier;
 	u8 carrier_version;
+
+	u8 carrier_flags;
+	enum sue_daughter daughter;
+	u8 daughter_version;
 
 	const struct sue_carrier_ops *carrier_ops;
 
@@ -57,5 +75,6 @@ int sue_print_device_info(const struct sue_device_info *device);
 
 const char *sue_device_get_canonical_module_name(const struct sue_device_info *device);
 const char *sue_device_get_canonical_carrier_name(const struct sue_device_info *device);
+const char *sue_device_get_canonical_daughter_name(const struct sue_device_info *device);
 
 #endif /* __DEVICE_INTERFACE_H__ */

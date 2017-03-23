@@ -88,6 +88,7 @@ static const char *carrier_names[] = {
 	"demo client",
 	"highend demo client",
 	"s810 reference kit",
+	"StreamKit Prime",
 };
 
 static const char *canonical_carrier_names[] = {
@@ -95,6 +96,21 @@ static const char *canonical_carrier_names[] = {
 	"democlient",
 	"hedemoclient",
 	"s810refkit",
+	"streamkitprime",
+};
+
+static  const char *daughter_names[] = {
+	"unknown",
+	"empty",
+	"highend",
+	"voice",
+};
+
+static const char *canonical_daughter_names[] = {
+	"unknown",
+	"empty",
+	"highend",
+	"voice",
 };
 
 extern struct sue_carrier_ops demo_client_ops;
@@ -104,6 +120,7 @@ static const struct sue_carrier_ops *sue_carrier_ops[] = {
 	&demo_client_ops,		/* demo client */
 	&demo_client_ops,		/* highend demo client, it is also handled by the demo client board file */
 	&demo_client_ops,		/* ref kit, still handled by demo client board file */
+	&demo_client_ops,		/* StreamKit Prime, still handled by demo client board file */
 };
 
 struct carrier_map_entry {
@@ -111,6 +128,7 @@ struct carrier_map_entry {
 	u8 carrier_version;
 	u8 msb_code;
 	u8 lsb_code;
+	u8 flags;
 };
 
 /*
@@ -121,9 +139,25 @@ struct carrier_map_entry {
  * 0x01, so we always assume it's a normal demo client.
  */
 static const struct carrier_map_entry carrier_map[] = {
-	{ SUE_CARRIER_DEMO_CLIENT,		0, 0x1E, 0x01 },
-	{ SUE_CARRIER_HE_DEMO_CLIENT,		0, 0x1E, 0x1E },
-	{ SUE_CARRIER_S810_REF_KIT,		0, 0x15, 0x01 },
+	{ SUE_CARRIER_DEMO_CLIENT,		0, 0x1E, 0x01, 0 },
+	{ SUE_CARRIER_HE_DEMO_CLIENT,		0, 0x1E, 0x1E, 0 },
+
+	{ SUE_CARRIER_S810_REF_KIT,		2, 0x15, 0x01, 0 },
+	{ SUE_CARRIER_S810_REF_KIT,		2, 0x16, 0x01, 0 },
+
+	{ SUE_CARRIER_STREAMKIT_PRIME,		0, 0x04, 0x00, SUE_CARRIER_FLAGS_HAS_DAUGHTER },
+};
+
+struct daughter_map_entry {
+	enum sue_daughter daughter;
+	u8 daughter_version;
+	u8 code;
+};
+
+static const struct daughter_map_entry daughter_map[] = {
+	{ SUE_DAUGHTER_EMPTY,	0, 0x01 },
+	{ SUE_DAUGHTER_HE,	0, 0x11 },
+	{ SUE_DAUGHTER_VOICE,	0, 0x13 },
 };
 
 static int get_adc_code(u16 adc_value)
@@ -145,21 +179,31 @@ static int fill_device_info(struct sue_device_info *device, u16 module_msb_adc_v
 	int module_msb_code, module_lsb_code;
 	int carrier_msb_code, carrier_lsb_code;
 
+	/* NOTE: We fill these raw values just for debugging purposes */
+	device->module_msb_adc_value = module_msb_adc_value;
+	device->module_lsb_adc_value = module_lsb_adc_value;
+	device->carrier_msb_adc_value = carrier_msb_adc_value;
+	device->carrier_lsb_adc_value = carrier_lsb_adc_value;
+
 	module_msb_code = get_adc_code(module_msb_adc_value);
 	if (module_msb_code < 0)
 		return module_msb_code;
+	device->module_msb_code = module_msb_code;
 
 	module_lsb_code = get_adc_code(module_lsb_adc_value);
 	if (module_lsb_code < 0)
 		return module_lsb_code;
+	device->module_lsb_code = module_lsb_code;
 
 	carrier_msb_code = get_adc_code(carrier_msb_adc_value);
 	if (carrier_msb_code < 0)
 		return carrier_msb_code;
+	device->carrier_msb_code = carrier_msb_code;
 
 	carrier_lsb_code = get_adc_code(carrier_lsb_adc_value);
 	if (carrier_lsb_code < 0)
 		return carrier_lsb_code;
+	device->carrier_lsb_code = carrier_lsb_code;
 
 
 	for (i = 0; i < ARRAY_SIZE(module_map); i++) {
@@ -171,10 +215,29 @@ static int fill_device_info(struct sue_device_info *device, u16 module_msb_adc_v
 	}
 
 	for (i = 0; i < ARRAY_SIZE(carrier_map); i++) {
-		if (carrier_map[i].msb_code == carrier_msb_code && carrier_map[i].lsb_code == carrier_lsb_code) {
-			device->carrier = carrier_map[i].carrier;
-			device->carrier_version = carrier_map[i].carrier_version;
-			break;
+		if (carrier_map[i].flags & SUE_CARRIER_FLAGS_HAS_DAUGHTER) {
+			if (carrier_map[i].msb_code == carrier_msb_code) {
+				int j;
+
+				device->carrier = carrier_map[i].carrier;
+				device->carrier_version = carrier_map[i].carrier_version;
+				device->carrier_flags = carrier_map[i].flags;
+
+				for (j = 0; j < ARRAY_SIZE(daughter_map); j++) {
+					if (daughter_map[j].code == carrier_lsb_code) {
+						device->daughter = daughter_map[j].daughter;
+						device->daughter_version = daughter_map[j].daughter_version;
+					}
+				}
+
+				break;
+			}
+		} else {
+			if (carrier_map[i].msb_code == carrier_msb_code && carrier_map[i].lsb_code == carrier_lsb_code) {
+				device->carrier = carrier_map[i].carrier;
+				device->carrier_version = carrier_map[i].carrier_version;
+				break;
+			}
 		}
 	}
 
@@ -209,7 +272,16 @@ int sue_device_detect(struct sue_device_info *device)
 
 int sue_print_device_info(const struct sue_device_info *device)
 {
-	printf("Module: '%s (L%d)', Carrier board: '%s (L%d)'\n", module_names[device->module], device->module_version, carrier_names[device->carrier], device->carrier_version);
+	printf("ADC values: Module: 0x%02x 0x%02x, Carrier board: 0x%02x 0x%02x\n",
+			device->module_msb_adc_value, device->module_lsb_adc_value, device->carrier_msb_adc_value, device->carrier_lsb_adc_value);
+	printf("Codes     : Module: 0x%02x 0x%02x, Carrier board: 0x%02x 0x%02x\n", device->module_msb_code, device->module_lsb_code, device->carrier_msb_code, device->carrier_lsb_code);
+
+	printf("Module    : %s (L%d)\n", module_names[device->module], device->module_version);
+	printf("Carrier   : %s (L%d)\n", carrier_names[device->carrier], device->carrier_version);
+	if (device->carrier_flags & SUE_CARRIER_FLAGS_HAS_DAUGHTER) {
+		printf("Daughter  : %s (L%d)\n", daughter_names[device->daughter], device->daughter_version);
+	}
+
 	return 0;
 }
 
@@ -221,6 +293,11 @@ const char *sue_device_get_canonical_module_name(const struct sue_device_info *d
 const char *sue_device_get_canonical_carrier_name(const struct sue_device_info *device)
 {
 	return canonical_carrier_names[device->carrier];
+}
+
+const char *sue_device_get_canonical_daughter_name(const struct sue_device_info *device)
+{
+	return canonical_daughter_names[device->daughter];
 }
 
 int sue_carrier_ops_init(struct sue_device_info *device)
