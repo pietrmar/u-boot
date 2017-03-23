@@ -453,7 +453,14 @@ int board_late_init(void)
 	imx_iomux_v3_setup_multiple_pads(wdog_pads, ARRAY_SIZE(wdog_pads));
 	set_wdog_reset((struct wdog_regs *)WDOG1_BASE_ADDR);
 
-	snprintf(buffer, sizeof(buffer), "%s_%s", sue_device_get_canonical_module_name(&current_device), sue_device_get_canonical_carrier_name(&current_device));
+	if (current_device.carrier_flags & SUE_CARRIER_FLAGS_HAS_DAUGHTER) {
+		snprintf(buffer, sizeof(buffer), "%s_%s_%s",
+				sue_device_get_canonical_module_name(&current_device),
+				sue_device_get_canonical_carrier_name(&current_device),
+				sue_device_get_canonical_daughter_name(&current_device));
+	} else {
+		snprintf(buffer, sizeof(buffer), "%s_%s", sue_device_get_canonical_module_name(&current_device), sue_device_get_canonical_carrier_name(&current_device));
+	}
 	printf("Setting fit_config: %s\n", buffer);
 	setenv("fit_config", buffer);
 
