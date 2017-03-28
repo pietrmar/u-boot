@@ -806,8 +806,16 @@ int console_init_r(void)
 
 	/* if board is locked, disable input device */
 	if (is_hab_enabled()) {
-		puts("Board is locked, disabling input device\n");
-		inputdev = search_device(DEV_FLAGS_INPUT, "nulldev");
+#ifdef is_boot_from_usb
+		if (is_boot_from_usb()) {
+			puts("Board is locked, but boot from USB is active, not touching input device\n");
+		}
+		else
+#endif
+		{
+			puts("Board is locked, disabling input device\n");
+			inputdev = search_device(DEV_FLAGS_INPUT, "nulldev");
+		}
 	}
 
 	if (inputdev != NULL) {
@@ -891,8 +899,16 @@ int console_init_r(void)
 
 	/* if board is locked, disable input device */
 	if (is_hab_enabled()) {
-		puts("Board is locked, disabling input device\n");
-		inputdev = search_device(DEV_FLAGS_INPUT, "nulldev");
+#ifdef is_boot_from_usb
+		if (is_boot_from_usb()) {
+			puts("Board is locked, but boot from USB is active, not touching input device\n");
+		}
+		else
+#endif
+		{
+			puts("Board is locked, disabling input device\n");
+			inputdev = search_device(DEV_FLAGS_INPUT, "nulldev");
+		}
 	}
 
 	/* Initializes input console */
