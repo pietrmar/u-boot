@@ -110,13 +110,13 @@
 \
 \
     "check_factory_state=" \
-       "echo \"INFO: Checking if fit and data partitions are empty.\"; " \
+       "echo \"INFO: Checking if fit and u-boot-env partitions are empty.\"; " \
        "setenv target_addr ${swu_load_addr}; " \
        "setenv factory_state 1; " \
        "mw ${swu_load_addr} 0xffffffff; " \
        "setexpr target_addr ${target_addr} + 4; " \
        "setexpr target_addr ${target_addr} + 4; " \
-       "for part in fit data; " \
+       "for part in fit u-boot-env; " \
            "do; " \
            "nand read ${target_addr} $part 4; " \
            "cmp.l ${swu_load_addr} ${target_addr} 1; " \
