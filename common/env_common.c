@@ -138,6 +138,18 @@ int set_default_vars(int nvars, char * const vars[])
 				H_NOCLEAR | H_INTERACTIVE, 0, nvars, vars);
 }
 
+/* Forcefully [re]set individual variables to their value in the default environment */
+int force_default_vars(int nvars, char * const vars[])
+{
+	/*
+	 * Special use-case: import from default environment
+	 * (and use \0 as a separator)
+	 */
+	return himport_r(&env_htab, (const char *)default_environment,
+				sizeof(default_environment), '\0',
+				H_NOCLEAR | H_FORCE, 0, nvars, vars);
+}
+
 #ifdef CONFIG_ENV_AES
 #include <aes.h>
 /**
@@ -221,6 +233,47 @@ int env_import(const char *buf, int check)
 	error("Cannot import environment: errno = %d\n", errno);
 
 	set_default_env("!import failed");
+
+	return 0;
+}
+
+/*
+ * Check if CRC is valid and (if yes) import the environment with the H_NOCLEAR | H_FORCE flags.
+ * Note that "buf" may or may not be aligned.
+ */
+int env_merge(const char *buf, int check)
+{
+	env_t *ep = (env_t *)buf;
+	int ret;
+
+	if (check) {
+		uint32_t crc;
+
+		memcpy(&crc, &ep->crc, sizeof(crc));
+
+		if (crc32(0, ep->data, ENV_SIZE) != crc) {
+			set_default_env("!bad CRC");
+			return 0;
+		}
+	}
+
+	/* Decrypt the env if desired. */
+	ret = env_aes_cbc_crypt(ep, 0);
+	if (ret) {
+		error("Failed to decrypt env!\n");
+		set_default_env("!import failed");
+		return ret;
+	}
+
+	if (himport_r(&env_htab, (char *)ep->data, ENV_SIZE, '\0', H_NOCLEAR | H_FORCE, 0,
+			0, NULL)) {
+		gd->flags |= GD_FLG_ENV_READY;
+		return 1;
+	}
+
+	error("Cannot merge environment: errno = %d\n", errno);
+
+	set_default_env("!merge failed");
 
 	return 0;
 }

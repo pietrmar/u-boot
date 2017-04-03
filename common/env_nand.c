@@ -316,12 +316,6 @@ int get_nand_env_oob(nand_info_t *nand, unsigned long *result)
 #ifdef CONFIG_ENV_OFFSET_REDUND
 void env_relocate_spec(void)
 {
-	// if board is locked, use default environment
-	if (is_hab_enabled()) {
-		set_default_env("Board is locked, using default environment\n");
-		return;
-	}
-
 #if !defined(ENV_IS_EMBEDDED)
 	int read1_fail = 0, read2_fail = 0;
 	int crc1_ok = 0, crc2_ok = 0;
@@ -377,12 +371,34 @@ void env_relocate_spec(void)
 	else
 		ep = tmp_env2;
 
+	/*
+	 * Import the environment. The environment on NAND (normally) doesn't contain the bootcmd
+	 * and other variables needed for proper boot, so in order to start with something, we'll import
+	 * the default environment first. If the board is unlocked we'll overwrite default settings with
+	 * the ones from NAND. This ensures that any variables set during development make it to the
+	 * environment.
+	 *
+	 * On locked boards, however, the situation is opposite. First the environment from NAND needs
+	 * to be imported and any user-defined values overridden with the defaults.
+	 */
+	if (!is_hab_enabled()) {
+		set_default_env("");
+	}
+
 	env_flags = ep->flags;
-	env_import((char *)ep, 0);
+	env_merge((char *)ep, 0);
 
 done:
 	free(tmp_env1);
 	free(tmp_env2);
+
+	if (is_hab_enabled()) {
+		puts("Board is locked, resetting variables to their default values\n");
+
+		if (force_default_vars(0, NULL) == 0) {
+			error("Default environment import failed: errno = %d\n", errno);
+		}
+	}
 
 #endif /* ! ENV_IS_EMBEDDED */
 }
@@ -394,12 +410,6 @@ done:
  */
 void env_relocate_spec(void)
 {
-	// if board is locked, use default environment
-	if (is_hab_enabled()) {
-		set_default_env("Board is locked, using default environment\n");
-		return;
-	}
-
 #if !defined(ENV_IS_EMBEDDED)
 	int ret;
 	ALLOC_CACHE_ALIGN_BUFFER(char, buf, CONFIG_ENV_SIZE);
@@ -424,7 +434,30 @@ void env_relocate_spec(void)
 		return;
 	}
 
-	env_import(buf, 1);
+	/*
+	 * Import the environment. The environment on NAND (normally) doesn't contain the bootcmd
+	 * and other variables needed for proper boot, so in order to start with something, we'll import
+	 * the default environment first. If the board is unlocked we'll overwrite default settings with
+	 * the ones from NAND. This ensures that any variables set during development make it to the
+	 * environment.
+	 *
+	 * On locked boards, however, the situation is opposite. First the environment from NAND needs
+	 * to be imported and any user-defined values overridden with the defaults.
+	 */
+	if (!is_hab_enabled()) {
+		set_default_env("");
+	}
+
+	env_merge(buf, 1);
+
+	if (is_hab_enabled()) {
+		puts("Board is locked, resetting variables to their default values\n");
+
+		if (force_default_vars(0, NULL) == 0) {
+			error("Default environment import failed: errno = %d\n", errno);
+		}
+	}
+
 #endif /* ! ENV_IS_EMBEDDED */
 }
 #endif /* CONFIG_ENV_OFFSET_REDUND */
