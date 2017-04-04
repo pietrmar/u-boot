@@ -87,7 +87,7 @@ static const char *carrier_names[] = {
 	"unknown",
 	"demo client",
 	"highend demo client",
-	"s810 reference kit",
+	"StreamKit Go",
 	"StreamKit Prime",
 };
 
@@ -95,7 +95,7 @@ static const char *canonical_carrier_names[] = {
 	"unknown",
 	"democlient",
 	"hedemoclient",
-	"s810refkit",
+	"streamkitgo",
 	"streamkitprime",
 };
 
@@ -119,7 +119,7 @@ static const struct sue_carrier_ops *sue_carrier_ops[] = {
 	NULL,				/* unknown */
 	&demo_client_ops,		/* demo client */
 	&demo_client_ops,		/* highend demo client, it is also handled by the demo client board file */
-	&demo_client_ops,		/* ref kit, still handled by demo client board file */
+	&demo_client_ops,		/* StreamKit Go, still handled by demo client board file */
 	&demo_client_ops,		/* StreamKit Prime, still handled by demo client board file */
 };
 
@@ -142,8 +142,8 @@ static const struct carrier_map_entry carrier_map[] = {
 	{ SUE_CARRIER_DEMO_CLIENT,		0, 0x1E, 0x01, 0 },
 	{ SUE_CARRIER_HE_DEMO_CLIENT,		0, 0x1E, 0x1E, 0 },
 
-	{ SUE_CARRIER_S810_REF_KIT,		2, 0x15, 0x01, 0 },
-	{ SUE_CARRIER_S810_REF_KIT,		2, 0x16, 0x01, 0 },
+	{ SUE_CARRIER_STREAMKIT_GO,		2, 0x15, 0x01, 0 },
+	{ SUE_CARRIER_STREAMKIT_GO,		2, 0x16, 0x01, 0 },
 
 	{ SUE_CARRIER_STREAMKIT_PRIME,		0, 0x04, 0x00, SUE_CARRIER_FLAGS_HAS_DAUGHTER },
 };
