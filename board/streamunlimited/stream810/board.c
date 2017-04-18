@@ -151,79 +151,6 @@ static void setup_iomux_fec(void)
 	imx_iomux_v3_setup_multiple_pads(fec2_pads_s810, ARRAY_SIZE(fec2_pads_s810));
 }
 
-int ft_board_setup(void *blob, bd_t *bd)
-{
-	/* Patch fec2 phy address to first found phy */
-	if (current_device.fec2_phy_addr != -1) {
-		u32 new_phy_addr = current_device.fec2_phy_addr;
-		int node, ret;
-
-		printf("Patching fec2 PHY address in the device tree to %d\n", new_phy_addr);
-		node = fdt_path_offset(blob, "/soc/aips-bus@30800000/ethernet@30bf0000/mdio/ethernet-phy@0");
-		if (node < 0) {
-			printf("Could not find the ethernet-phy node\n");
-			return node;
-		}
-
-		ret = fdt_setprop_u32(blob, node, "reg", new_phy_addr);
-		if (ret < 0) {
-			printf("Could not set reg property of ethernet-phy node\n");
-			return ret;
-		}
-	}
-
-	/*
-	 * Enable additional operating points if desired.
-	 *
-	 * This allows us to specify `additional-operating-points` in the devicetree,
-	 * which will be enabled when the `enable_additional_operating_points` variable
-	 * in the const partition is set.
-	 *
-	 * We use this mechanism to allow customers to enable or disable 1.2GHz
-	 * operation of the CPU.
-	 *
-	 * Essentially we are just taking the data from the `additional-operating-points`
-	 * property and append it to the current `operating-points` before booting.
-	 *
-	 * NOTE: since in the current implementation this depends on `getconst_yesno()`
-	 * we can only use it if CONFIG_CONST_ENV_COMMON is enabled.
-	 */
-#ifdef CONFIG_CONST_ENV_COMMON
-	if (getconst_yesno("enable_additional_operating_points") == 1) {
-		int ret, node, addproplen;
-		const void *addprop;
-
-		printf("Patching devicetree to enable additional operating points\n");
-		node = fdt_path_offset(blob, "/cpus/cpu@0");
-		if (node < 0) {
-			printf("Could not find the cpu node\n");
-			return node;
-		}
-
-		addprop = fdt_getprop(blob, node, "additional-operating-points", &addproplen);
-		if (addproplen < 0) {
-			printf("Could not get `additional-operating-points` for cpu@0\n");
-		} else {
-			u8 buffer[32];
-
-			if (addproplen > 32) {
-				printf("Too many additional operating points\n");
-				return -ENOMEM;
-			}
-			memcpy(buffer, addprop, addproplen);
-
-			ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
-			if (ret < 0) {
-				printf("Failed to append `additional-operating-points`\n");
-				return ret;
-			}
-		}
-	}
-#endif
-
-	return 0;
-}
-
 int board_eth_init(bd_t *bis)
 {
 	int i;
@@ -286,6 +213,83 @@ static int setup_fec(int fec_id)
 	return 0;
 }
 #endif
+
+int ft_board_setup(void *blob, bd_t *bd)
+{
+#ifdef CONFIG_FEC_MXC
+	/* Patch fec2 phy address to first found phy */
+	if (current_device.fec2_phy_addr != -1) {
+		u32 new_phy_addr = current_device.fec2_phy_addr;
+		int node, ret;
+
+		printf("Patching fec2 PHY address in the device tree to %d\n", new_phy_addr);
+		node = fdt_path_offset(blob, "/soc/aips-bus@30800000/ethernet@30bf0000/mdio/ethernet-phy@0");
+		if (node < 0) {
+			printf("Could not find the ethernet-phy node\n");
+			return node;
+		}
+
+		ret = fdt_setprop_u32(blob, node, "reg", new_phy_addr);
+		if (ret < 0) {
+			printf("Could not set reg property of ethernet-phy node\n");
+			return ret;
+		}
+	}
+#endif
+
+	/*
+	 * Enable additional operating points if desired.
+	 *
+	 * This allows us to specify `additional-operating-points` in the devicetree,
+	 * which will be enabled when the `enable_additional_operating_points` variable
+	 * in the const partition is set.
+	 *
+	 * We use this mechanism to allow customers to enable or disable 1.2GHz
+	 * operation of the CPU.
+	 *
+	 * Essentially we are just taking the data from the `additional-operating-points`
+	 * property and append it to the current `operating-points` before booting.
+	 *
+	 * NOTE: since in the current implementation this depends on `getconst_yesno()`
+	 * we can only use it if CONFIG_CONST_ENV_COMMON is enabled.
+	 */
+#ifdef CONFIG_CONST_ENV_COMMON
+	if (getconst_yesno("enable_additional_operating_points") == 1) {
+		int ret, node, addproplen;
+		const void *addprop;
+
+		printf("Patching devicetree to enable additional operating points\n");
+		node = fdt_path_offset(blob, "/cpus/cpu@0");
+		if (node < 0) {
+			printf("Could not find the cpu node\n");
+			return node;
+		}
+
+		addprop = fdt_getprop(blob, node, "additional-operating-points", &addproplen);
+		if (addproplen < 0) {
+			printf("Could not get `additional-operating-points` for cpu@0\n");
+		} else {
+			u8 buffer[32];
+
+			if (addproplen > 32) {
+				printf("Too many additional operating points\n");
+				return -ENOMEM;
+			}
+			memcpy(buffer, addprop, addproplen);
+
+			ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
+			if (ret < 0) {
+				printf("Failed to append `additional-operating-points`\n");
+				return ret;
+			}
+		}
+	}
+#endif
+
+	return 0;
+}
+
+
 
 int board_early_init_f(void)
 {
