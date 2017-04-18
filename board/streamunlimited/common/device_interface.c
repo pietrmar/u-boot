@@ -304,7 +304,12 @@ const char *sue_device_get_canonical_daughter_name(const struct sue_device_info 
 
 int sue_carrier_ops_init(struct sue_device_info *device)
 {
-	device->carrier_ops = sue_carrier_ops[device->carrier];
+	if (device->carrier < ARRAY_SIZE(sue_carrier_ops)) {
+		device->carrier_ops = sue_carrier_ops[device->carrier];
+	} else {
+		printf("WARNING: carrier index out of range\n");
+		device->carrier_ops = NULL;
+	}
 
 	return 0;
 }
