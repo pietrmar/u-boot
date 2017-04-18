@@ -272,9 +272,10 @@ int sue_device_detect(struct sue_device_info *device)
 
 int sue_print_device_info(const struct sue_device_info *device)
 {
-	printf("ADC values: Module: 0x%02x 0x%02x, Carrier board: 0x%02x 0x%02x\n",
+	printf("ADC values: Module: 0x%04x 0x%04x, Carrier board: 0x%04x 0x%04x\n",
 			device->module_msb_adc_value, device->module_lsb_adc_value, device->carrier_msb_adc_value, device->carrier_lsb_adc_value);
-	printf("Codes     : Module: 0x%02x 0x%02x, Carrier board: 0x%02x 0x%02x\n", device->module_msb_code, device->module_lsb_code, device->carrier_msb_code, device->carrier_lsb_code);
+	printf("Codes     : Module:   0x%02x   0x%02x, Carrier board:   0x%02x   0x%02x\n",
+			device->module_msb_code, device->module_lsb_code, device->carrier_msb_code, device->carrier_lsb_code);
 
 	printf("Module    : %s (L%d)\n", module_names[device->module], device->module_version);
 	printf("Carrier   : %s (L%d)\n", carrier_names[device->carrier], device->carrier_version);
