@@ -89,6 +89,7 @@ static const char *carrier_names[] = {
 	"highend demo client",
 	"StreamKit Go",
 	"StreamKit Prime",
+	"factory tester",
 };
 
 static const char *canonical_carrier_names[] = {
@@ -97,6 +98,7 @@ static const char *canonical_carrier_names[] = {
 	"hedemoclient",
 	"streamkitgo",
 	"streamkitprime",
+	"factory",
 };
 
 static  const char *daughter_names[] = {
@@ -121,6 +123,7 @@ static const struct sue_carrier_ops *sue_carrier_ops[] = {
 	&demo_client_ops,		/* highend demo client, it is also handled by the demo client board file */
 	&demo_client_ops,		/* StreamKit Go, still handled by demo client board file */
 	&demo_client_ops,		/* StreamKit Prime, still handled by demo client board file */
+	NULL,				/* Factory tester, does not require any client ops at the moment */
 };
 
 struct carrier_map_entry {
@@ -146,6 +149,11 @@ static const struct carrier_map_entry carrier_map[] = {
 	{ SUE_CARRIER_STREAMKIT_GO,		2, 0x16, 0x01, 0 },
 
 	{ SUE_CARRIER_STREAMKIT_PRIME,		0, 0x04, 0x00, SUE_CARRIER_FLAGS_HAS_DAUGHTER },
+
+	{ SUE_CARRIER_FACTORY_TESTER,		0, 0x19, 0x01, 0 },
+	{ SUE_CARRIER_FACTORY_TESTER,		0, 0x06, 0x18, 0 },
+	{ SUE_CARRIER_FACTORY_TESTER,		1, 0x03, 0x01, 0 },
+	{ SUE_CARRIER_FACTORY_TESTER,		1, 0x03, 0x18, 0 },
 };
 
 struct daughter_map_entry {
