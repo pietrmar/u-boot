@@ -236,6 +236,7 @@ static int fill_device_info(struct sue_device_info *device, u16 module_msb_adc_v
 			if (carrier_map[i].msb_code == carrier_msb_code && carrier_map[i].lsb_code == carrier_lsb_code) {
 				device->carrier = carrier_map[i].carrier;
 				device->carrier_version = carrier_map[i].carrier_version;
+				device->carrier_flags = carrier_map[i].flags;
 				break;
 			}
 		}
