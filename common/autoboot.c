@@ -230,6 +230,19 @@ static void process_fdt_options(const void *blob)
 #endif /* CONFIG_OF_CONTROL */
 }
 
+/*
+ * This is the list of variables we want to restore to a default state
+ * before trying to boot in mfg mode.
+ */
+static char *const mfg_default_vars[] = {
+	"console",
+	"baudrate",
+	"fdt_addr",
+	"loadaddr",
+	"mfg_args",
+	"bootcmd_mfg",
+};
+
 const char *bootdelay_process(void)
 {
 	char *s;
@@ -289,6 +302,9 @@ const char *bootdelay_process(void)
 
 #ifdef is_boot_from_usb
 	if (is_boot_from_usb()) {
+		/* Restore the necessary variables to a default state before booting */
+		set_default_vars(ARRAY_SIZE(mfg_default_vars), mfg_default_vars);
+
 		s = getenv("bootcmd_mfg");
 		printf("Run bootcmd_mfg: %s\n", s);
 	}
