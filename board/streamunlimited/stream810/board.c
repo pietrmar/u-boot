@@ -116,12 +116,6 @@ static void setup_iomux_uart(void)
 }
 
 #ifdef CONFIG_FEC_MXC
-/* Currently incompleted since on the demo client fec1 is not used */
-static const iomux_v3_cfg_t fec1_pads_s810[] = {
-	MX7D_PAD_ENET1_TX_CLK__CCM_ENET_REF_CLK1 | MUX_PAD_CTRL(ENET_PAD_CTRL) | MUX_MODE_SION,
-	MX7D_PAD_LCD_DATA15__GPIO3_IO20	| MUX_PAD_CTRL(NO_PAD_CTRL),
-};
-
 static const iomux_v3_cfg_t fec2_pads_s810[] = {
 	MX7D_PAD_GPIO1_IO14__ENET2_MDIO | MUX_PAD_CTRL(ENET_PAD_CTRL),
 	MX7D_PAD_GPIO1_IO15__ENET2_MDC | MUX_PAD_CTRL(ENET_PAD_CTRL),
@@ -143,7 +137,6 @@ static const iomux_v3_cfg_t fec2_pads_s810[] = {
 
 static void setup_iomux_fec(void)
 {
-	imx_iomux_v3_setup_multiple_pads(fec1_pads_s810, ARRAY_SIZE(fec1_pads_s810));
 	imx_iomux_v3_setup_multiple_pads(fec2_pads_s810, ARRAY_SIZE(fec2_pads_s810));
 }
 
