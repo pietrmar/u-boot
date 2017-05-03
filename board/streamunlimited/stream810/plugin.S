@@ -71,6 +71,7 @@ wait_lock:
 FREQ_DEFAULT_533:
 .endm
 
+/* The changes here are based on the difference between the sabre config and the imximage_32bit_ddr3.cfg */
 .macro imx7d_sabresd_ddr_setting
 	imx7d_ddr_freq_setting
 
@@ -99,7 +100,7 @@ FREQ_DEFAULT_533:
 	str r1, [r0, #0x1a4]
 	ldr r1, =0x80100004
 	str r1, [r0, #0x1a8]
-	ldr r1, =0x00400046
+	ldr r1, =0x0020002b
 	str r1, [r0, #0x64]
 	ldr r1, =0x1
 	str r1, [r0, #0x490]
@@ -109,13 +110,13 @@ FREQ_DEFAULT_533:
 	str r1, [r0, #0xd4]
 	ldr r1, =0x09300004
 	str r1, [r0, #0xdc]
-	ldr r1, =0x04080000
+	ldr r1, =0x04880000
 	str r1, [r0, #0xe0]
 	ldr r1, =0x00100004
 	str r1, [r0, #0xe4]
 	ldr r1, =0x33f
 	str r1, [r0, #0xf4]
-	ldr r1, =0x09081109
+	ldr r1, =0x090b0809
 	str r1, [r0, #0x100]
 	ldr r1, =0x0007020d
 	str r1, [r0, #0x104]
@@ -138,13 +139,13 @@ FREQ_DEFAULT_533:
 	ldr r1, =0x00030303
 	str r1, [r0, #0x194]
 
-	ldr r1, =0x00000016
+	ldr r1, =0x00000015
 	str r1, [r0, #0x200]
-	ldr r1, =0x00171717
+	ldr r1, =0x00080808
 	str r1, [r0, #0x204]
-	ldr r1, =0x04040404
+	ldr r1, =0x07070707
 	str r1, [r0, #0x214]
-	ldr r1, =0x0f040404
+	ldr r1, =0x0f0f0707
 	str r1, [r0, #0x218]
 
 	ldr r1, =0x06000604
@@ -152,6 +153,7 @@ FREQ_DEFAULT_533:
 	ldr r1, =0x00000001
 	str r1, [r0, #0x244]
 
+enable_ddr_controller:
 	ldr r0, =SRC_BASE_ADDR
 	mov r1, #0x0
 	ldr r2, =0x1000
@@ -211,6 +213,36 @@ wait_stat:
 	ldr r1, [r0, #0x4]
 	tst r1, #0x1
 	beq wait_stat
+
+	/* At the first pass the memory is configured for 32-bit bus width, lets write a value and read it back */
+	ldr r0, =0x80000000
+	ldr r1, =0xDEADBEEF
+	str r1, [r0]
+	ldr r2, [r0]
+	cmp r2, r1
+	beq bus_width_test_end
+
+	/* Assert DDR Controller reset and DDR PHY reset */
+	ldr r0, =SRC_BASE_ADDR
+	ldr r1, =0x2
+	ldr r2, =0x1000
+	str r1, [r0, r2]
+
+	/* Write the differences to the registers */
+	ldr r0, =DDRC_IPS_BASE_ADDR
+	ldr r1, =0x01041001
+	str r1, [r0]
+	ldr r1, =0x00200046
+	str r1, [r0, #0x64]
+	ldr r1, =0x00070707
+	str r1, [r0, #0x204]
+	ldr r1, =0x06060606
+	str r1, [r0, #0x214]
+	ldr r1, =0x0f060606
+	str r1, [r0, #0x218]
+	b enable_ddr_controller
+
+bus_width_test_end:
 .endm
 
 .macro imx7_clock_gating
@@ -221,6 +253,11 @@ wait_stat:
 
 .macro imx7_ddr_setting
 	imx7d_sabresd_ddr_setting
+
+	/* Taken from the .cfg file which has the following commit message: `imx7: lock secure memory` */
+	ldr r0, =IOMUXC_GPR_BASE_ADDR
+	ldr r1, =0x00000001
+	str r1, [r0, #0x24]
 .endm
 
 /* include the common plugin code here */
