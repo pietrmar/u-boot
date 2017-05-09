@@ -12,6 +12,7 @@
 #include <fdtdec.h>
 #include <menu.h>
 #include <post.h>
+#include <usb.h>
 
 #ifdef is_boot_from_usb
 #include <environment.h>
@@ -265,7 +266,14 @@ const char *bootdelay_process(void)
 
 #ifdef is_boot_from_usb
 	if (is_boot_from_usb()) {
+		int i;
+
 		disconnect_from_pc();
+		for (i = 0; i < CONFIG_USB_MAX_CONTROLLER_COUNT; i++) {
+			if (usb_lowlevel_stop(i))
+				printf("failed to stop USB controller %d\n", i);
+		}
+
 		printf("Boot from USB for mfgtools\n");
 		bootdelay = 0;
 		/* set_default_env("Use default environment for mfgtools\n"); */
