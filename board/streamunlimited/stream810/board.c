@@ -224,6 +224,27 @@ int ft_board_setup(void *blob, bd_t *bd)
 	}
 #endif
 
+	if (current_device.carrier == SUE_CARRIER_FACTORY_TESTER) {
+		int node, ret;
+
+		printf("INFO: Applying factory carrier specific fixups!\n");
+
+		if (current_device.fec2_phy_addr == -1) {
+			/* No ethernet phy found, disable fec2 */
+			printf("INFO: fec2 will be disabled\n");
+
+			node = fdt_path_offset(blob, "/soc/aips-bus@30800000/ethernet@30bf0000");
+			if (node < 0) {
+				printf("WARN: Could not find the ethernet node %d\n", node);
+			} else {
+				ret = fdt_setprop_string(blob, node, "status", "disabled");
+				if (ret < 0) {
+					printf("WARN: Could not set status property of ethernet node %d\n", ret);
+				}
+			}
+		}
+	}
+
 	/*
 	 * Enable additional operating points if desired.
 	 *
