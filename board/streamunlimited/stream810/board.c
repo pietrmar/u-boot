@@ -214,14 +214,12 @@ int ft_board_setup(void *blob, bd_t *bd)
 		printf("Patching fec2 PHY address in the device tree to %d\n", new_phy_addr);
 		node = fdt_path_offset(blob, "/soc/aips-bus@30800000/ethernet@30bf0000/mdio/ethernet-phy@0");
 		if (node < 0) {
-			printf("Could not find the ethernet-phy node\n");
-			return node;
-		}
-
-		ret = fdt_setprop_u32(blob, node, "reg", new_phy_addr);
-		if (ret < 0) {
-			printf("Could not set reg property of ethernet-phy node\n");
-			return ret;
+			printf("WARN: Could not find the ethernet-phy node %d\n", node);
+		} else {
+			ret = fdt_setprop_u32(blob, node, "reg", new_phy_addr);
+			if (ret < 0) {
+				printf("WARN: Could not set reg property of ethernet-phy node %d\n", ret);
+			}
 		}
 	}
 #endif
@@ -247,29 +245,27 @@ int ft_board_setup(void *blob, bd_t *bd)
 		int ret, node, addproplen;
 		const void *addprop;
 
-		printf("Patching devicetree to enable additional operating points\n");
+		printf("INFO: Patching devicetree to enable additional operating points\n");
 		node = fdt_path_offset(blob, "/cpus/cpu@0");
 		if (node < 0) {
-			printf("Could not find the cpu node\n");
-			return node;
-		}
-
-		addprop = fdt_getprop(blob, node, "additional-operating-points", &addproplen);
-		if (addproplen < 0) {
-			printf("Could not get `additional-operating-points` for cpu@0\n");
+			printf("WARN: Could not find the cpu node %d\n", node);
 		} else {
-			u8 buffer[32];
+			addprop = fdt_getprop(blob, node, "additional-operating-points", &addproplen);
+			if (addproplen < 0) {
+				printf("WARN: Could not get `additional-operating-points` for cpu@0 %d\n", addproplen);
+			} else {
+				u8 buffer[32];
 
-			if (addproplen > 32) {
-				printf("Too many additional operating points\n");
-				return -ENOMEM;
-			}
-			memcpy(buffer, addprop, addproplen);
+				if (addproplen > 32) {
+					printf("WARN: Too many additional operating points\n");
+				} else {
+					memcpy(buffer, addprop, addproplen);
 
-			ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
-			if (ret < 0) {
-				printf("Failed to append `additional-operating-points`\n");
-				return ret;
+					ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
+					if (ret < 0) {
+						printf("WARN: Failed to append `additional-operating-points` %d\n", ret);
+					}
+				}
 			}
 		}
 	}
