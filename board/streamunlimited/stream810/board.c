@@ -12,6 +12,7 @@
 #include <asm/gpio.h>
 #include <asm/imx-common/iomux-v3.h>
 #include <asm/imx-common/boot_mode.h>
+#include <asm/imx-common/regs-gpmi.h>
 #include <asm/io.h>
 #include <linux/sizes.h>
 #include <linux/mtd/mtd.h>
@@ -96,6 +97,29 @@ static iomux_v3_cfg_t const gpmi_pads[] = {
 	MX7D_PAD_SAI1_TX_BCLK__NAND_CE0_B	| MUX_PAD_CTRL(NAND_PAD_CTRL),
 	MX7D_PAD_SAI1_TX_DATA__NAND_READY_B	| MUX_PAD_CTRL(NAND_PAD_READY0_CTRL),
 };
+
+static void fixup_nand_timings(void)
+{
+	struct mxs_gpmi_regs *gpmi_regs =
+		(struct mxs_gpmi_regs *)MXS_GPMI_BASE;
+
+	/* We configure the NAND here to the same timings as in the kernel */
+	writel(0x00020203, &gpmi_regs->hw_gpmi_timing0);
+
+	/* Make sure DLL_ENABLE is set to 0 */
+	clrbits_le32(&gpmi_regs->hw_gpmi_ctrl1, GPMI_CTRL1_DLL_ENABLE);
+
+	/* Then configure RDN_DELAY to 12 */
+	clrsetbits_le32(&gpmi_regs->hw_gpmi_ctrl1,
+		GPMI_CTRL1_RDN_DELAY_MASK,
+		(12 << GPMI_CTRL1_RDN_DELAY_OFFSET));
+
+	/* Then enable set DLL_ENABLE to 1 again */
+	setbits_le32(&gpmi_regs->hw_gpmi_ctrl1, GPMI_CTRL1_DLL_ENABLE);
+
+	/* After enabling DLL we need to wait 64 GPMI clock cycles, so 100 us is enough */
+	udelay(100);
+}
 
 static void setup_gpmi_nand(void)
 {
@@ -452,6 +476,14 @@ static const iomux_v3_cfg_t wdog_pads[] = {
 int board_late_init(void)
 {
 	char buffer[64];
+
+#ifdef CONFIG_SYS_USE_NAND
+	/*
+	 * We need to call this in late_init() because after board_init() the board_nand_init() function will be
+	 * called which resets our registers to the default values and we lose the timing configuration.
+	 */
+	fixup_nand_timings();
+#endif
 
 	if (fwupdate_init(&current_device) < 0) {
 		printf("ERROR: fwupdate_init() call failed!\n");
