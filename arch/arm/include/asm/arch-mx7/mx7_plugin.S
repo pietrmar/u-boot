@@ -20,6 +20,8 @@
 #define ROM_API_TABLE_BASE_ADDR_LEGACY		0x180
 #define ROM_VERSION_OFFSET               	0x80
 #define ROM_API_HWCNFG_SETUP_OFFSET		0x08
+#define ROM_API_HAB_ENTRY		0x104
+#define ROM_API_HAB_EXIT			0x108
 
 plugin_start:
 
@@ -48,6 +50,13 @@ plugin_start:
 
 normal_boot:
 
+#ifdef CONFIG_SECURE_BOOT
+hab_start:
+	ldr r3, =ROM_API_HAB_ENTRY
+	ldr r4, [r3]
+	blx r4
+#endif
+
 /*
  * The following is to fill in those arguments for this ROM function
  * pu_irom_hwcnfg_setup(void **start, size_t *bytes, const void *boot_data)
@@ -58,9 +67,10 @@ normal_boot:
  *         Final image size on exit.
  * boot_data - Initial @ref ivt Boot Data load address.
  */
-	adr r0, boot_data2
-	adr r1, image_len2
-	adr r2, boot_data2
+setup_copy_address:
+	adrl r0, boot_data2
+	adrl r1, image_len2
+	adrl r2, boot_data2
 
 /*
  * check the _pu_irom_api_table for the address
@@ -73,6 +83,12 @@ before_calling_rom___pu_irom_hwcnfg_setup:
 	blx r4
 after_calling_rom___pu_irom_hwcnfg_setup:
 
+#ifdef CONFIG_SECURE_BOOT
+hab_exit:
+	ldr r3, =ROM_API_HAB_EXIT
+	ldr r4, [r3]
+	blx r4
+#endif
 
 /* To return to ROM from plugin, we need to fill in these argument.
  * Here is what need to do:
@@ -80,21 +96,25 @@ after_calling_rom___pu_irom_hwcnfg_setup:
  * plugin_download(void **start, size_t *bytes, UINT32 *ivt_offset)
  */
 	pop {r0-r4, lr}
-	push {r5}
-	ldr r5, boot_data2
-	str r5, [r0]
-	ldr r5, image_len2
-	str r5, [r1]
-	ldr r5, second_ivt_offset
-	str r5, [r2]
+	push {r4-r5}
+
+	adrl r5, boot_data2
+	ldr r4, [r5]
+	str r4, [r0]
+
+	adrl r5, image_len2
+	ldr r4, [r5]
+	str r4, [r1]
+
+	adrl r5, second_ivt_offset
+	ldr r4, [r5]
+	str r4, [r2]
+
 	mov r0, #1
-	pop {r5}
+	pop {r4-r5}
 
 	/* return back to ROM code */
 	bx lr
-
-/* make the following data right in the end of the output*/
-.ltorg
 
 #define FLASH_OFFSET 0x400
 
@@ -105,6 +125,14 @@ after_calling_rom___pu_irom_hwcnfg_setup:
  */
 
 second_ivt_offset:      .long (ivt2_header + 0x2C + FLASH_OFFSET)
+
+/* make the following data right in the end of the output*/
+.ltorg
+
+#ifdef CONFIG_SECURE_BOOT
+	.org (0x4000 - CONFIG_CSF_SIZE - 0x2C)  /* target whole plugin size 0x4000 */
+	csf_data: .space CONFIG_CSF_SIZE /* same value as used in .cfg file for CSF token */ 
+#endif
 
 /*
  * The following is the second IVT header plus the second boot data

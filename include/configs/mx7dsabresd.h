@@ -22,14 +22,18 @@
 
 #define CONFIG_DBG_MONITOR
 /* uncomment for PLUGIN mode support */
-/* #define CONFIG_USE_PLUGIN */
+#define CONFIG_USE_PLUGIN
 
 /* uncomment for SECURE mode support */
-/* #define CONFIG_SECURE_BOOT */
+#define CONFIG_SECURE_BOOT
 
 #ifdef CONFIG_SECURE_BOOT
 #ifndef CONFIG_CSF_SIZE
+#ifdef CONFIG_USE_PLUGIN
+#define CONFIG_CSF_SIZE 0x2000
+#else
 #define CONFIG_CSF_SIZE 0x4000
+#endif
 #endif
 #endif
 

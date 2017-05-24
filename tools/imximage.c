@@ -317,11 +317,8 @@ static void set_imx_hdr_v2(struct imx_header *imxhdr, uint32_t dcd_len,
 		imx_header_v2_t *next_hdr_v2;
 		flash_header_v2_t *next_fhdr_v2;
 
-		if(imximage_csf_size != 0) {
-			fprintf(stderr, "Error: Header v2: SECURE_BOOT"
-					"is only supported in DCD mode!");
-			exit(EXIT_FAILURE);
-		}
+		int plugin_size_including_ivt2_and_flash_offset = imximage_plugin_size + 
+					sizeof(flash_header_v2_t) + sizeof(boot_data_t) + imximage_ivt_offset;
 
 		fhdr_v2->entry = imximage_iram_free_start +
 			flash_offset + sizeof(flash_header_v2_t) +
@@ -347,10 +344,12 @@ static void set_imx_hdr_v2(struct imx_header *imxhdr, uint32_t dcd_len,
 		 * must be multiple of storage sector size. Here we set the
 		 * first section to be 16KB for this purpose.
 		 */
-		hdr_v2->boot_data.size = MAX_PLUGIN_CODE_SIZE;
+		hdr_v2->boot_data.size = ((plugin_size_including_ivt2_and_flash_offset - 1) / MAX_PLUGIN_CODE_SIZE + 1) * MAX_PLUGIN_CODE_SIZE;
 
 		/* Security feature are not supported */
-		fhdr_v2->csf = 0;
+		fhdr_v2->csf = imximage_csf_size > 0 ? 
+				fhdr_v2->self + imximage_plugin_size - imximage_csf_size :
+				0;
 
 		next_hdr_v2 = (imx_header_v2_t *)((char*)hdr_v2 +
 				imximage_plugin_size);
@@ -377,7 +376,9 @@ static void set_imx_hdr_v2(struct imx_header *imxhdr, uint32_t dcd_len,
 
 		next_hdr_v2->boot_data.plugin = 0;
 
-		next_fhdr_v2->csf = 0;
+		csf_ptr = imximage_csf_size > 0 ? 
+				&next_fhdr_v2->csf :
+				0;
 	}
 }
 
