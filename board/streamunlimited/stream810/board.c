@@ -227,6 +227,8 @@ static int setup_fec(int fec_id)
 }
 #endif
 
+#define FDT_BUFSIZE 32
+
 int ft_board_setup(void *blob, bd_t *bd)
 {
 #ifdef CONFIG_FEC_MXC
@@ -290,26 +292,32 @@ int ft_board_setup(void *blob, bd_t *bd)
 		int ret, node, addproplen;
 		const void *addprop;
 
+
 		printf("INFO: Patching devicetree to enable additional operating points\n");
 		node = fdt_path_offset(blob, "/cpus/cpu@0");
 		if (node < 0) {
 			printf("WARN: Could not find the cpu node %d\n", node);
 		} else {
 			addprop = fdt_getprop(blob, node, "additional-operating-points", &addproplen);
-			if (addproplen < 0) {
+			if (addprop == NULL) {
+				/* When fdt_getprop() returns NULL, addproplen will contain a negative error code */
 				printf("WARN: Could not get `additional-operating-points` for cpu@0 %d\n", addproplen);
+			} else if (addproplen > FDT_BUFSIZE) {
+				/*
+				 * If the `additional-operating-points` property has too many entries, it will be too
+				 * large for our buffer, thus we print out a warning.
+				 */
+				printf("WARN: Too many additional operating points\n");
 			} else {
-				u8 buffer[32];
+				u8 buffer[FDT_BUFSIZE];
 
-				if (addproplen > 32) {
-					printf("WARN: Too many additional operating points\n");
-				} else {
-					memcpy(buffer, addprop, addproplen);
+				/* Otherwise just copy the data of the additional-operating-points */
+				memcpy(buffer, addprop, addproplen);
 
-					ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
-					if (ret < 0) {
-						printf("WARN: Failed to append `additional-operating-points` %d\n", ret);
-					}
+				/* And append it to our current operating-points */
+				ret = fdt_appendprop(blob, node, "operating-points", buffer, addproplen);
+				if (ret < 0) {
+					printf("WARN: Failed to append `additional-operating-points` %d\n", ret);
 				}
 			}
 		}
