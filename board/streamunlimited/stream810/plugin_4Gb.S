@@ -71,7 +71,7 @@ wait_lock:
 FREQ_DEFAULT_533:
 .endm
 
-/* The changes here are based on the difference between the sabre config and the imximage_32bit_ddr3.cfg */
+/* The changes here are based on the difference between the sabre config and the imximage_2x2Gb_ddr3.cfg */
 .macro imx7d_sabresd_ddr_setting
 	imx7d_ddr_freq_setting
 
