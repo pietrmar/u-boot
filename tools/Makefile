@@ -206,6 +206,7 @@ endif # !LOGO_BMP
 # Define _GNU_SOURCE to obtain the getline prototype from stdio.h
 #
 HOST_EXTRACFLAGS += -include $(srctree)/include/libfdt_env.h \
+		-include $(srctree)/include/linux/kconfig.h \
 		$(patsubst -I%,-idirafter%, $(filter -I%, $(UBOOTINCLUDE))) \
 		-I$(srctree)/lib/libfdt \
 		-I$(srctree)/tools \
@@ -213,6 +214,7 @@ HOST_EXTRACFLAGS += -include $(srctree)/include/libfdt_env.h \
 		-DUSE_HOSTCC \
 		-D__KERNEL_STRICT_NAMES \
 		-D_GNU_SOURCE
+
 
 __build:	$(LOGO-y)
 
