@@ -35,8 +35,6 @@
 #define CONFIG_RSA_SOFTWARE_EXP
 
 #define CONFIG_DBG_MONITOR
-/* uncomment for PLUGIN mode support */
-#define CONFIG_USE_PLUGIN
 
 /* uncomment for SECURE mode support */
 #define CONFIG_SECURE_BOOT

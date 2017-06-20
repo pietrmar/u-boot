@@ -12,5 +12,9 @@ config SYS_SOC
 config SYS_CONFIG_NAME
 	default "stream810"
 
+config USE_PLUGIN
+	bool "Use plugin for memory detection"
+	default "y"
+
 endif
 
