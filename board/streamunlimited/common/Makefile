@@ -5,3 +5,4 @@ obj-y += cmd_kobs.o
 obj-y += fsl_bch.o
 obj-y += device_interface.o
 obj-y += carrier_sue_demo_client.o
+obj-y += carrier_generic_board.o

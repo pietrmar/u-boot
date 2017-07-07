@@ -119,6 +119,7 @@ static const char *canonical_daughter_names[] = {
 };
 
 extern struct sue_carrier_ops demo_client_ops;
+extern struct sue_carrier_ops generic_board_ops;
 
 static const struct sue_carrier_ops *sue_carrier_ops[] = {
 	NULL,				/* unknown */
