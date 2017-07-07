@@ -121,13 +121,19 @@ static const char *canonical_daughter_names[] = {
 extern struct sue_carrier_ops demo_client_ops;
 extern struct sue_carrier_ops generic_board_ops;
 
+/*
+ * All board except the DemoClients are handled by the generic_board_ops,
+ * currently the difference between demo_client_ops and generic_board_ops
+ * is, that the demo_client_ops also check for the old FWUP GPIO in addition
+ * to the NPB_IN pin.
+ */
 static const struct sue_carrier_ops *sue_carrier_ops[] = {
-	NULL,				/* unknown */
+	&generic_board_ops,		/* unknown */
 	&demo_client_ops,		/* demo client */
 	&demo_client_ops,		/* highend demo client, it is also handled by the demo client board file */
-	&demo_client_ops,		/* StreamKit Go, still handled by demo client board file */
-	&demo_client_ops,		/* StreamKit Prime, still handled by demo client board file */
-	NULL,				/* Factory tester, does not require any client ops at the moment */
+	&generic_board_ops,		/* StreamKit Go */
+	&generic_board_ops,		/* StreamKit Prime */
+	&generic_board_ops,		/* Factory tester */
 };
 
 struct carrier_map_entry {
