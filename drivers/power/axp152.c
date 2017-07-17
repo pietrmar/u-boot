@@ -157,15 +157,6 @@ int axp152_init(void)
 		return ret;
 	reg |= AXP152_POWEROFF_SEQ;
 	ret = axp152_write(AXP152_SHUTDOWN, reg);
-	if (ret)
-		return ret;
 
-
-	/* Enable the power recovery */
-	ret = axp152_read(AXP152_POWER_RECOVERY, &reg);
-	if (ret)
-		return ret;
-	reg |= AXP152_POWER_RECOVERY_EN;
-	ret = axp152_write(AXP152_POWER_RECOVERY, reg);
 	return ret;
 }
