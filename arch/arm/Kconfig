@@ -569,6 +569,11 @@ config TARGET_STREAM810
 	select CPU_V7
 	select CPU_V7_HAS_NONSEC
 
+config TARGET_STREAM812
+	bool "Support stream812"
+	select CPU_V7
+	select CPU_V7_HAS_NONSEC
+
 config TARGET_MX6UL_14X14_EVK
         bool "Support mx6ul_14x14_evk"
         select CPU_V7
@@ -931,6 +936,7 @@ source "board/st-ericsson/snowball/Kconfig"
 source "board/st-ericsson/u8500/Kconfig"
 source "board/st/stv0991/Kconfig"
 source "board/streamunlimited/stream810/Kconfig"
+source "board/streamunlimited/stream812/Kconfig"
 source "board/sunxi/Kconfig"
 source "board/syteco/zmx25/Kconfig"
 source "board/tbs/tbs2910/Kconfig"

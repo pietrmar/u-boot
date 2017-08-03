@@ -49,6 +49,7 @@ dtb-$(CONFIG_ZYNQ) += zynq-zc702.dtb \
 	zynq-zc770-xm013.dtb
 dtb-$(CONFIG_AM33XX) += am335x-boneblack.dtb
 dtb-$(CONFIG_TARGET_STREAM810) += s810.dtb
+dtb-$(CONFIG_TARGET_STREAM812) += s810.dtb
 
 dtb-$(CONFIG_SOCFPGA) +=				\
 	socfpga_arria5_socdk.dtb			\

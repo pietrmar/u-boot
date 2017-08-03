@@ -1,0 +1,20 @@
+if TARGET_STREAM812
+
+config SYS_BOARD
+	default "stream812"
+
+config SYS_VENDOR
+	default "streamunlimited"
+
+config SYS_SOC
+	default "mx7"
+
+config SYS_CONFIG_NAME
+	default "stream812"
+
+config USE_PLUGIN
+	bool "Use plugin for memory detection"
+	default "y"
+
+endif
+
