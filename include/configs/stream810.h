@@ -202,6 +202,7 @@
 #ifdef CONFIG_SYS_USE_NAND
 #define CONFIG_CMD_NAND
 #define CONFIG_CMD_NAND_TRIMFFS
+#define CONFIG_CMD_KOBS
 
 /* NAND stuff */
 #define CONFIG_NAND_MXS
