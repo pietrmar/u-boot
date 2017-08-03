@@ -1,6 +1,6 @@
 obj-y += flags_mx7.o
 obj-y += fwupdate.o
-obj-y += partitions.o
+obj-$(CONFIG_MTD_PARTITIONS) += partitions.o
 obj-$(CONFIG_CMD_KOBS) += cmd_kobs.o
 obj-$(CONFIG_CMD_KOBS) += fsl_bch.o
 obj-y += device_interface.o
