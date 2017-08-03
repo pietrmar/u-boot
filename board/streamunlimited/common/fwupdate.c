@@ -267,12 +267,14 @@ static int do_fwup(cmd_tbl_t * cmdtp, int flag, int argc, char * const argv[])
 		return ((bootcnt < bootmax) ? 0 : 1);
 	}
 
+#ifdef CONFIG_MTD_PARTITIONS
 	if (strcmp(cmd, "mtdparts") == 0) {
 		if (sue_setup_mtdparts() != 0)
 			return 1;
 
 		return 0;
 	}
+#endif
 
 usage:
 	return cmd_usage(cmdtp);
@@ -288,7 +290,9 @@ U_BOOT_CMD(fwup, CONFIG_SYS_MAXARGS, 1, do_fwup,
 		"fwup fail       - checks if fail flag is set\n"
 		"fwup incbootcnt - increments boot count\n"
 		"fwup bootcnt    - checks if boot count is less than maximum allowed\n"
+#ifdef CONFIG_MTD_PARTITIONS
 		"fwup mtdparts   - rebuilds the partition table based on NAND\n"
+#endif
 		);
 
 
